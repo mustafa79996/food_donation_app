@@ -1,17 +1,46 @@
-# food_donation_app
+# FoodLink
 
-A new Flutter project.
+FoodLink connects food donors with approved welfare centres.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Speak food names while creating a donation or searching donations.
+- Require donors to confirm freshness, safe storage, and the expiry date.
+- Register welfare centres with a PDF or image of their registration certificate.
+- Show approved welfare centres within 25 km, ranked by the donor's location.
+- Restrict welfare dashboards to administrator-approved centres.
+- Provide an administrator review queue for centre applications.
+- Offer an in-app FAQ assistant and a call action on donation details.
 
-A few resources to get you started if this is your first Flutter project:
+Voice recognition uses the device speech-recognition service. The help assistant uses local FAQ responses and does not require an AI API key
+or send chat messages to a remote service. **Call Support** asks for a phone
+number because no support line was configured; enter the complete number with
+country code to open the device dialer.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Firebase setup
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The app uses Firebase Authentication, Cloud Firestore, and Firebase Storage.
+Deploy the included Firestore and Storage rules before testing centre
+registration, verification, or donation updates:
+
+```powershell
+firebase use <your-firebase-project-id>
+firebase deploy --only firestore:rules,storage
+```
+
+The administrator is allowlisted as `mustafa79996@gmail.com` in
+`lib/utils/admin_config.dart`, `firestore.rules`, and `storage.rules`. Sign in
+with that verified Firebase Authentication account and open **Profile → Welfare
+centre applications** to review certificates. Keep the three allowlist values
+in sync if the administrator address changes.
+
+Welfare centres apply from the **Welfare Centre** button and can sign in to the
+welfare dashboard only after approval. Certificate images are stored privately
+in Firebase Storage; the included rules limit uploads to 10 MB.
+
+## Run
+
+```powershell
+flutter pub get
+flutter run
+```
