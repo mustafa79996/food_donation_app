@@ -25,13 +25,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _passwordController.text.trim(),
       _nameController.text.trim(),
     );
+    if (!mounted) return;
     if (success) {
       Navigator.pushReplacementNamed(context, Routes.main);
     } else {
       if (authProvider.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.errorMessage!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(authProvider.errorMessage!)));
       }
     }
   }
@@ -49,9 +50,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create account'),
-      ),
+      appBar: AppBar(title: const Text('Create account')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -61,7 +60,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 const SizedBox(height: 24),
                 const Text(
-                  'Join GreenGiving',
+                  'Join FoodLink',
                   style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),

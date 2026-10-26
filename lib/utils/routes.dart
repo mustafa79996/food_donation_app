@@ -10,8 +10,11 @@ import '../screens/nearest_welfare_centers_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/signup_screen.dart';
+import '../screens/support_chat_screen.dart';
 import '../screens/welfare_dashboard_screen.dart';
 import '../screens/welfare_login_screen.dart';
+import '../screens/welfare_registration_screen.dart';
+import '../screens/welfare_verification_screen.dart';
 
 abstract class Routes {
   static const login = '/login';
@@ -25,31 +28,32 @@ abstract class Routes {
   static const nearestWelfareCenters = '/nearest-welfare-centers';
   static const welfareLogin = '/welfare-login';
   static const welfareDashboard = '/welfare-dashboard';
+  static const welfareRegistration = '/welfare-registration';
+  static const welfareVerification = '/welfare-verification';
+  static const supportChat = '/support-chat';
 
   static Map<String, Widget Function(BuildContext)> get routes => {
-        login: (_) => const LoginScreen(),
-        signup: (_) => const SignUpScreen(),
-        main: (_) => const HomeScreen(),
-        donate: (_) => const DonateFoodScreen(),
-        foodList: (_) => const FoodListScreen(),
-        profile: (_) => const ProfileScreen(),
-        settings: (_) => const SettingsScreen(),
-        nearestWelfareCenters: (_) =>
-            const NearestWelfareCentersScreen(),
-        welfareLogin: (_) => const WelfareLoginScreen(),
-        welfareDashboard: (_) => const WelfareDashboardScreen(),
-      };
+    login: (_) => const LoginScreen(),
+    signup: (_) => const SignUpScreen(),
+    main: (_) => const HomeScreen(),
+    donate: (_) => const DonateFoodScreen(),
+    foodList: (_) => const FoodListScreen(),
+    profile: (_) => const ProfileScreen(),
+    settings: (_) => const SettingsScreen(),
+    nearestWelfareCenters: (_) => const NearestWelfareCentersScreen(),
+    welfareLogin: (_) => const WelfareLoginScreen(),
+    welfareDashboard: (_) => const WelfareDashboardScreen(),
+    welfareRegistration: (_) => const WelfareRegistrationScreen(),
+    welfareVerification: (_) => const WelfareVerificationScreen(),
+    supportChat: (_) => const SupportChatScreen(),
+  };
 
-  static Route<dynamic>? onGenerateRoute(
-    RouteSettings settings,
-  ) {
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     if (settings.name == details) {
       final donation = settings.arguments as Donation?;
 
       return MaterialPageRoute(
-        builder: (_) => DonationDetailsScreen(
-          donation: donation,
-        ),
+        builder: (_) => DonationDetailsScreen(donation: donation),
       );
     }
 

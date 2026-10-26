@@ -1,11 +1,11 @@
 {
-    "name": "food_donation_app",
-    "short_name": "food_donation_app",
+    "name": "FoodLink",
+    "short_name": "FoodLink",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Connect food donors with welfare centres.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

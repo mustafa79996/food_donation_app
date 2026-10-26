@@ -19,10 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
 
-      Navigator.pushReplacementNamed(
-        context,
-        Routes.login,
-      );
+      Navigator.pushReplacementNamed(context, Routes.login);
     });
   }
 
@@ -34,10 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFFEAF7ED),
-              Color(0xFFDCF1DC),
-            ],
+            colors: [Color(0xFFEAF7ED), Color(0xFFDCF1DC)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -55,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen> {
               SizedBox(height: 16),
 
               Text(
-                'GreenGiving',
+                'FoodLink',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.w700,
@@ -67,10 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               Text(
                 'Food donation made simple',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
             ],
           ),

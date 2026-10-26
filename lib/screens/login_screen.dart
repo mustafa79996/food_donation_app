@@ -21,38 +21,23 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter email and password'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter email and password')));
       return;
     }
 
-    final auth = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    );
+    final auth = Provider.of<AuthProvider>(context, listen: false);
 
-    final success = await auth.signIn(
-      email,
-      password,
-    );
+    final success = await auth.signIn(email, password);
 
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushReplacementNamed(
-        context,
-        Routes.main,
-      );
+      Navigator.pushReplacementNamed(context, Routes.main);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            auth.errorMessage ?? 'Login failed',
-          ),
-        ),
+        SnackBar(content: Text(auth.errorMessage ?? 'Login failed')),
       );
     }
   }
@@ -69,9 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('GreenGiving'),
-      ),
+      appBar: AppBar(title: const Text('FoodLink')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -79,19 +62,13 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 30),
 
-              const Icon(
-                Icons.volunteer_activism,
-                size: 80,
-              ),
+              const Icon(Icons.volunteer_activism, size: 80),
 
               const SizedBox(height: 20),
 
               const Text(
-                'Welcome to GreenGiving',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                'Welcome to FoodLink',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
 
@@ -144,10 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      Routes.signup,
-                    );
+                    Navigator.pushNamed(context, Routes.signup);
                   },
                   child: const Text('Create Account'),
                 ),
@@ -161,10 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const Text(
                 'Welfare Centre?',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 12),
@@ -176,15 +147,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            const WelfareLoginScreen(),
+                        builder: (_) => const WelfareLoginScreen(),
                       ),
                     );
                   },
                   icon: const Icon(Icons.business),
-                  label: const Text(
-                    'Welfare Centre Login',
-                  ),
+                  label: const Text('Welfare Centre Login'),
                 ),
               ),
             ],

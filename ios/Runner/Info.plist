@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Food Donation App</string>
+	<string>FoodLink</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,6 +22,12 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to show the nearest welfare centers.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app uses the microphone so you can speak food names and search donations by voice.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to enter food names and search donations by voice.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app lets you select photos of food donations and welfare-centre registration certificates.</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>

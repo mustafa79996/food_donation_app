@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Donation model for a food donation record.
- class Donation {
+class Donation {
   final String id;
+  final String donorId;
   final String donorName;
   final String foodName;
   final String category;
@@ -12,9 +13,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
   final String contactNumber;
   final String imageUrl;
   final DateTime createdAt;
+  final Map<String, bool> foodSafetyChecklist;
 
   Donation({
     required this.id,
+    this.donorId = '',
     required this.donorName,
     required this.foodName,
     required this.category,
@@ -24,11 +27,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
     required this.contactNumber,
     required this.imageUrl,
     required this.createdAt,
+    this.foodSafetyChecklist = const {},
   });
 
   factory Donation.fromMap(Map<String, dynamic> data, String id) {
     return Donation(
       id: id,
+      donorId: data['userId'] as String? ?? '',
       donorName: data['donorName'] as String? ?? 'Anonymous',
       foodName: data['foodName'] as String? ?? '',
       category: data['category'] as String? ?? 'Other',
@@ -38,6 +43,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
       contactNumber: data['contactNumber'] as String? ?? '',
       imageUrl: data['imageUrl'] as String? ?? '',
       createdAt: _dateFromValue(data['createdAt']) ?? DateTime.now(),
+      foodSafetyChecklist:
+          (data['foodSafetyChecklist'] as Map<String, dynamic>? ?? {}).map(
+            (key, value) => MapEntry(key, value == true),
+          ),
     );
   }
 
@@ -59,6 +68,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
       'contactNumber': contactNumber,
       'imageUrl': imageUrl,
       'createdAt': Timestamp.fromDate(createdAt),
+      'foodSafetyChecklist': foodSafetyChecklist,
     };
   }
 }
