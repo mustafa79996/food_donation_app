@@ -1,0 +1,318 @@
+# FoodLink Documentation Sample Code
+
+This file contains the exact sample code for the newly added features:
+1. Donation Model & Quality Checklist Data Structure
+2. Notification & Automated Email Service (Role-Separated)
+3. Welfare Freshness & Quality Checklist Dialog
+4. Dual-Tab Notification Center UI
+5. Firestore Security Rules
+
+---
+
+## 1. Donation Model with Statuses & Quality Checklist
+
+File reference: `lib/models/donation.dart`
+
+```dart
+class Donation {
+  final String id;
+  final String foodItem;
+  final int quantity;
+  final String donorId;
+  final String donorEmail;
+  final String status; // 'pending' | 'accepted' | 'rejected'
+  final String updatedBy; // Name/Email of welfare centre staff
+  final Map<String, dynamic>? welfareChecklist; // Quality & freshness audit
+
+  Donation({
+    required this.id,
+    required this.foodItem,
+    required this.quantity,
+    required this.donorId,
+    this.donorEmail = '',
+    this.status = 'pending',
+    this.updatedBy = '',
+    this.welfareChecklist,
+  });
+
+  /// Check whether the food quality inspection has been completed
+  bool get hasWelfareChecklist =>
+      welfareChecklist != null && welfareChecklist!['completed'] == true;
+
+  bool get isFoodFreshConfirmed =>
+      welfareChecklist?['isFresh'] == true;
+
+  bool get isFoodGoodQualityConfirmed =>
+      welfareChecklist?['isGoodQuality'] == true;
+
+  Map<String, dynamic> toMap() => {
+    'foodItem': foodItem,
+    'quantity': quantity,
+    'donorId': donorId,
+    'donorEmail': donorEmail,
+    'status': status,
+    'updatedBy': updatedBy,
+    'welfareChecklist': welfareChecklist,
+  };
+}
+```
+
+---
+
+## 2. Notification & Email Service (Role-Separated)
+
+File reference: `lib/services/notification_service.dart`
+
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/donation.dart';
+
+class NotificationService {
+  static final _firestore = FirebaseFirestore.instance;
+
+  /// Notify welfare centres & admin whenever a donor creates a donation
+  static Future<void> notifyDonationCreated({
+    required Donation donation,
+    required String donorName,
+  }) async {
+    // 1. In-app notification for welfare staff
+    await _firestore.collection('notifications').add({
+      'title': 'New Food Donation Available!',
+      'body': '$donorName posted ${donation.quantity} units of ${donation.foodItem}.',
+      'targetRole': 'welfare',
+      'donationId': donation.id,
+      'isRead': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // 2. Automated email to welfare admin
+    await _queueEmail(
+      to: 'mustafa79996@gmail.com',
+      subject: 'New Food Donation: ${donation.foodItem}',
+      html: '<h3>New Donation Alert</h3>'
+            '<p><strong>Item:</strong> ${donation.foodItem}</p>'
+            '<p><strong>Quantity:</strong> ${donation.quantity}</p>'
+            '<p><strong>Donor:</strong> $donorName (${donation.donorEmail})</p>',
+    );
+  }
+
+  /// Notify the donor when their donation is accepted or rejected
+  static Future<void> notifyDonationStatusChanged({
+    required Donation donation,
+    required String newStatus,
+    required String updatedBy,
+  }) async {
+    final isAccepted = newStatus == 'accepted';
+
+    // 1. In-app notification for donor
+    await _firestore.collection('notifications').add({
+      'title': isAccepted ? 'Donation Accepted! 🎉' : 'Donation Update',
+      'body': '$updatedBy has marked "${donation.foodItem}" as $newStatus.',
+      'targetRole': 'donor',
+      'targetUserId': donation.donorId,
+      'targetUserEmail': donation.donorEmail,
+      'donationId': donation.id,
+      'isRead': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // 2. Automated email to donor
+    if (donation.donorEmail.isNotEmpty) {
+      await _queueEmail(
+        to: donation.donorEmail,
+        subject: 'Your donation has been $newStatus',
+        html: '<p>Hi,</p><p>Your donation <strong>${donation.foodItem}</strong> '
+              'has been <strong>$newStatus</strong> by $updatedBy.</p>',
+      );
+    }
+  }
+
+  /// Push into Firestore 'mail' collection for Cloud Extension
+  static Future<void> _queueEmail({
+    required String to,
+    required String subject,
+    required String html,
+  }) async {
+    await _firestore.collection('mail').add({
+      'to': [to],
+      'message': {
+        'subject': subject,
+        'html': html,
+      },
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+}
+```
+
+---
+
+## 3. Welfare Food Freshness & Quality Checklist
+
+File reference: `lib/widgets/welfare_quality_checklist_dialog.dart`
+
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import '../models/donation.dart';
+import '../services/notification_service.dart';
+
+class WelfareQualityChecklistSheet extends StatefulWidget {
+  final Donation donation;
+
+  const WelfareQualityChecklistSheet({super.key, required this.donation});
+
+  static Future<void> show(BuildContext context, {required Donation donation}) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => WelfareQualityChecklistSheet(donation: donation),
+    );
+  }
+
+  @override
+  State<WelfareQualityChecklistSheet> createState() => _State();
+}
+
+class _State extends State<WelfareQualityChecklistSheet> {
+  bool _isFresh = true;
+  bool _isGoodQuality = true;
+  bool _isPackagingIntact = true;
+  final _notesController = TextEditingController();
+
+  Future<void> _submitChecklist() async {
+    final checklistData = {
+      'completed': true,
+      'isFresh': _isFresh,
+      'isGoodQuality': _isGoodQuality,
+      'isPackagingIntact': _isPackagingIntact,
+      'notes': _notesController.text.trim(),
+      'verifiedAt': DateTime.now().toIso8601String(),
+    };
+
+    // Update donation in Firestore
+    await FirebaseFirestore.instance
+        .collection('donations')
+        .doc(widget.donation.id)
+        .update({'welfareChecklist': checklistData});
+
+    // Notify donor of quality verification
+    await NotificationService.notifyFoodQualityVerified(
+      donation: widget.donation,
+      isFresh: _isFresh,
+      isGoodQuality: _isGoodQuality,
+    );
+
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Food Freshness & Quality Checklist',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          SwitchListTile(
+            title: const Text('Was the food fresh upon arrival?'),
+            value: _isFresh,
+            onChanged: (val) => setState(() => _isFresh = val),
+          ),
+          SwitchListTile(
+            title: const Text('Was the food safe & good quality?'),
+            value: _isGoodQuality,
+            onChanged: (val) => setState(() => _isGoodQuality = val),
+          ),
+          SwitchListTile(
+            title: const Text('Was the packaging clean & intact?'),
+            value: _isPackagingIntact,
+            onChanged: (val) => setState(() => _isPackagingIntact = val),
+          ),
+          TextField(
+            controller: _notesController,
+            decoration: const InputDecoration(labelText: 'Inspection notes (optional)'),
+          ),
+          ElevatedButton(
+            onPressed: _submitChecklist,
+            child: const Text('Submit Inspection'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## 4. Role-Separated Notifications Tabs (Donor vs. Welfare Centre)
+
+File reference: `lib/widgets/notifications_modal.dart`
+
+```dart
+Widget _buildRoleSegmentSelector() {
+  return Row(
+    children: [
+      // Donor Tab
+      Expanded(
+        child: StreamBuilder<int>(
+          stream: NotificationService.streamUnreadCount(role: 'donor'),
+          builder: (context, snapshot) {
+            final unread = snapshot.data ?? 0;
+            return ChoiceChip(
+              label: Text('Donor (${unread > 0 ? unread : 0})'),
+              selected: _selectedRole == 'donor',
+              onSelected: (_) => setState(() => _selectedRole = 'donor'),
+            );
+          },
+        ),
+      ),
+      // Welfare Centre Tab
+      Expanded(
+        child: StreamBuilder<int>(
+          stream: NotificationService.streamUnreadCount(role: 'welfare'),
+          builder: (context, snapshot) {
+            final unread = snapshot.data ?? 0;
+            return ChoiceChip(
+              label: Text('Welfare Centre (${unread > 0 ? unread : 0})'),
+              selected: _selectedRole == 'welfare',
+              onSelected: (_) => setState(() => _selectedRole = 'welfare'),
+            );
+          },
+        ),
+      ),
+    ],
+  );
+}
+```
+
+---
+
+## 5. Firestore Security Rules
+
+File reference: `firestore.rules`
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Notifications Collection (Donor & Welfare Centre)
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+
+    // Trigger Email Collection (for Firebase Trigger Email Extension)
+    match /mail/{mailId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+  }
+}
+```

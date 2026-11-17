@@ -36,30 +36,47 @@ class _SplashScreenState extends State<SplashScreen> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.volunteer_activism,
-                size: 88,
-                color: Color(0xFF1E7D45),
-              ),
-
-              SizedBox(height: 16),
-
-              Text(
-                'FoodLink',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E7D45),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1E7D45).withValues(alpha: 0.18),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
 
-              SizedBox(height: 8),
+              const SizedBox(height: 20),
 
-              Text(
+              const Text(
+                'FoodLink',
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E7D45),
+                  letterSpacing: -0.5,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
                 'Food donation made simple',
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),

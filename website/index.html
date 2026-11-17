@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodLink - Connect Food Donors with Welfare Centres</title>
+  <meta name="description" content="Connecting food donors with verified local welfare centres to eliminate hunger and reduce food waste.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2315803D'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z'/></svg>">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Firebase JS SDK (v10 compat CDN) for real-time Firestore & Auth sync -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <!-- ================= Application Top Navigation ================= -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-wrapper" onclick="switchTab('donations')">
+        <div class="brand-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-title">FoodLink</span>
+          <span class="brand-tagline">Food Rescue & Welfare Network</span>
+        </div>
+      </div>
+
+      <!-- Desktop Nav Links -->
+      <nav class="desktop-nav">
+        <a href="#donations" class="nav-link active" data-tab="donations">
+          <span>🍲</span> Browse Donations
+        </a>
+        <a href="#donate" class="nav-link" data-tab="donate">
+          <span>➕</span> Donate Food
+        </a>
+        <a href="#centers" class="nav-link" data-tab="centers">
+          <span>🏢</span> Welfare Centers
+        </a>
+        <a href="#welfare" class="nav-link welfare-tab" data-tab="welfare">
+          <span>🛡️</span> Welfare Portal
+        </a>
+        <a href="#support" class="nav-link" data-tab="support">
+          <span>💬</span> AI Support
+        </a>
+        <a href="qr.html" class="nav-link" title="Download & Share App QR Code">
+          <span>📱</span> App QR
+        </a>
+      </nav>
+
+      <!-- Header Actions Right -->
+      <div class="header-actions">
+        <!-- App QR Code Button -->
+        <a href="qr.html" class="icon-btn" title="Scan & Download App QR Code" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; color: var(--text-dark);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </a>
+
+        <!-- Notification Bell -->
+        <button class="icon-btn" id="notifications-bell-btn" title="View Notifications">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="badge-dot" id="notification-unread-dot" style="display: none;"></span>
+        </button>
+
+        <!-- User Profile Pill -->
+        <button class="user-pill-btn" id="user-profile-btn">
+          <div class="user-avatar-circle">M</div>
+          <span id="user-pill-name">Mohammed Mustafa</span>
+          <span class="status-pill status-accepted" id="user-role-badge" style="font-size: 0.68rem; padding: 2px 6px;">Admin</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= Organic Curved Wave Banner ================= -->
+  <div class="hero-wave-container">
+    <div class="hero-inner">
+      <div class="hero-tag">
+        <span>🌱</span> Verified Food Rescue Platform
+      </div>
+      <h1 class="hero-title">Connecting Donors with Verified Welfare Centres</h1>
+      <p class="hero-desc">
+        Share surplus food with local shelters, community kitchens, and orphanages. Ensure safety, verify freshness, and nourish communities together.
+      </p>
+
+      <div class="hero-stats-row">
+        <div class="hero-stat-chip">
+          <span style="font-size: 1.4rem;">🍲</span>
+          <div>
+            <div class="hero-stat-num">1,280+</div>
+            <div class="hero-stat-label">Meals Shared</div>
+          </div>
+        </div>
+        <div class="hero-stat-chip">
+          <span style="font-size: 1.4rem;">🏢</span>
+          <div>
+            <div class="hero-stat-num">48+</div>
+            <div class="hero-stat-label">Active Centres</div>
+          </div>
+        </div>
+        <div class="hero-stat-chip">
+          <span style="font-size: 1.4rem;">🌟</span>
+          <div>
+            <div class="hero-stat-num">100%</div>
+            <div class="hero-stat-label">Safety Checked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Soft Curved SVG Wave Bottom Edge -->
+    <svg class="wave-svg" viewBox="0 0 1440 60" preserveAspectRatio="none">
+      <path d="M0,0 C320,50 640,65 960,35 C1200,12 1360,40 1440,55 L1440,60 L0,60 Z"></path>
+    </svg>
+  </div>
+
+  <!-- ================= Main Body Application Screens ================= -->
+  <main class="main-wrapper">
+
+    <!-- ================= TAB 1: BROWSE DONATIONS ================= -->
+    <section id="tab-donations" class="tab-pane active">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><span>🍲</span> Food Donations Feed</h2>
+          <p class="section-desc">Browse real-time food donations posted by local restaurants, catering, and community donors.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="switchTab('donate')">
+            <span>➕</span> Post a Donation
+          </button>
+        </div>
+      </div>
+
+      <!-- Scope Switcher ("All Donations" vs "My Donations") -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="chip-btn scope-toggle-btn active" data-scope="All">All Donations</button>
+        <button class="chip-btn scope-toggle-btn" data-scope="My Donations">👤 My Donations</button>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="category-chips-row">
+        <button class="chip-btn filter-cat-chip active" data-category="All">All Categories</button>
+        <button class="chip-btn filter-cat-chip" data-category="Meals">🍲 Meals</button>
+        <button class="chip-btn filter-cat-chip" data-category="Vegetables">🥕 Vegetables</button>
+        <button class="chip-btn filter-cat-chip" data-category="Fruits">🍎 Fruits</button>
+        <button class="chip-btn filter-cat-chip" data-category="Grains">🌾 Grains & Bread</button>
+        <button class="chip-btn filter-cat-chip" data-category="Snacks">🥨 Snacks</button>
+        <button class="chip-btn filter-cat-chip" data-category="Beverages">🧃 Beverages</button>
+        <button class="chip-btn filter-cat-chip" data-category="Other">📦 Other</button>
+      </div>
+
+      <!-- Filter Bar: Search Input & Status Dropdown -->
+      <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center;">
+          <div class="input-with-action">
+            <input type="text" id="donations-search-input" class="form-control" placeholder="Search by food item, category, address or donor name...">
+          </div>
+          <div>
+            <select id="donations-status-filter" class="form-control" style="width: auto; min-width: 160px; font-weight: 600;">
+              <option value="All">All Statuses</option>
+              <option value="pending">⏳ Pending Review</option>
+              <option value="accepted">✓ Accepted / Approved</option>
+              <option value="rejected">✕ Declined</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Metrics Bar -->
+        <div style="display: flex; gap: 16px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+          <span style="font-size: 0.84rem; color: var(--text-muted);">
+            Total: <strong id="count-total" style="color: var(--text-dark);">0</strong>
+          </span>
+          <span style="font-size: 0.84rem; color: var(--amber-orange);">
+            ⏳ Pending: <strong id="count-pending">0</strong>
+          </span>
+          <span style="font-size: 0.84rem; color: #16A34A;">
+            ✓ Accepted: <strong id="count-accepted">0</strong>
+          </span>
+          <span style="font-size: 0.84rem; color: var(--danger-red);">
+            ✕ Declined: <strong id="count-rejected">0</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- Donations Cards Grid -->
+      <div class="donations-grid" id="donations-grid-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: DONATE FOOD ================= -->
+    <section id="tab-donate" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><span>➕</span> Donate Surplus Food</h2>
+          <p class="section-desc">Fill in details about the surplus food. Local welfare centres will be alerted to claim it.</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
+        <!-- Left: Form -->
+        <div class="card">
+          <form id="donate-food-form">
+            
+            <!-- Food Name -->
+            <div class="form-group">
+              <label class="form-label" for="donate-food-name">Food Item Name *</label>
+              <div class="input-with-action">
+                <input type="text" id="donate-food-name" class="form-control" placeholder="e.g. Fresh Biryani, Vegetable Curry, Apples..." required>
+                <button type="button" class="mic-btn" id="mic-donate-food-name" title="Speak to input food name">
+                  🎙️
+                </button>
+              </div>
+            </div>
+
+            <!-- Category Selector -->
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <input type="hidden" id="donate-category-val" value="Meals">
+              <div class="category-chips-row" style="padding-bottom: 4px;">
+                <button type="button" class="chip-btn donate-cat-chip active" data-category="Meals">🍲 Meals</button>
+                <button type="button" class="chip-btn donate-cat-chip" data-category="Vegetables">🥕 Vegetables</button>
+                <button type="button" class="chip-btn donate-cat-chip" data-category="Fruits">🍎 Fruits</button>
+                <button type="button" class="chip-btn donate-cat-chip" data-category="Grains">🌾 Grains</button>
+                <button type="button" class="chip-btn donate-cat-chip" data-category="Snacks">🥨 Snacks</button>
+                <button type="button" class="chip-btn donate-cat-chip" data-category="Beverages">🧃 Beverages</button>
+                <button type="button" class="chip-btn donate-cat-chip" data-category="Other">📦 Other</button>
+              </div>
+            </div>
+
+            <!-- Quantity & Expiry in 2 cols -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group">
+                <label class="form-label" for="donate-quantity">Quantity (Servings / Plates) *</label>
+                <input type="number" id="donate-quantity" class="form-control" min="1" max="1000" value="10" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="donate-expiry">Best Before / Expiry Window *</label>
+                <input type="datetime-local" id="donate-expiry" class="form-control" required>
+              </div>
+            </div>
+
+            <!-- Pickup Address -->
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="form-label" for="donate-address" style="margin-bottom: 0;">Pickup Address *</label>
+                <button type="button" class="btn btn-outline btn-sm" id="detect-pickup-location-btn" style="padding: 2px 10px; font-size: 0.76rem;">
+                  📍 Use My Location
+                </button>
+              </div>
+              <div class="input-with-action">
+                <input type="text" id="donate-address" class="form-control" placeholder="House/Shop No, Street, Area, City" required>
+                <button type="button" class="mic-btn" id="mic-donate-address" title="Speak to input address">
+                  🎙️
+                </button>
+              </div>
+            </div>
+
+            <!-- Contact Number -->
+            <div class="form-group">
+              <label class="form-label" for="donate-contact">Donor Contact Phone Number *</label>
+              <input type="tel" id="donate-contact" class="form-control" placeholder="+91 98765 43210" value="+91 98765 43210" required>
+            </div>
+
+            <!-- Food Safety Checklist (4 Required Checkboxes) -->
+            <div class="safety-box">
+              <div class="safety-header">
+                <span>🛡️</span> Mandatory Food Safety Guarantee Checklist
+              </div>
+              <p style="font-size: 0.8rem; color: #166534; margin-bottom: 10px;">
+                All donors must strictly guarantee the following hygiene standards before dispatch:
+              </p>
+
+              <label class="safety-item">
+                <input type="checkbox" id="safety-fresh" checked required>
+                <span class="safety-item-label">
+                  <strong>Freshly Prepared / Wholesome:</strong> Food is fresh, edible, and prepared with standard food hygiene.
+                </span>
+              </label>
+
+              <label class="safety-item">
+                <input type="checkbox" id="safety-stored" checked required>
+                <span class="safety-item-label">
+                  <strong>Safe Temperature Storage:</strong> Food has been kept at safe temperature (chilled / heated / sealed).
+                </span>
+              </label>
+
+              <label class="safety-item">
+                <input type="checkbox" id="safety-packed" checked required>
+                <span class="safety-item-label">
+                  <strong>Clean Packaging:</strong> Stored in food-grade, leak-proof, uncontaminated containers.
+                </span>
+              </label>
+
+              <label class="safety-item">
+                <input type="checkbox" id="safety-expiry" checked required>
+                <span class="safety-item-label">
+                  <strong>Valid Expiry Time:</strong> Consumption window confirmed; will not spoil prior to pickup.
+                </span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="submit-donation-btn" style="padding: 14px; font-size: 1.05rem;">
+              Post Food Donation
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Image Preview & Presets -->
+        <div>
+          <div class="card" style="margin-bottom: 18px;">
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 12px;">📷 Food Photo Preview</h4>
+            <div style="border-radius: var(--radius-md); overflow: hidden; height: 180px; background: #E2E8F0; margin-bottom: 14px;">
+              <img id="donate-image-preview" src="https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=800" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">
+            </div>
+            <input type="hidden" id="donate-image-url-val" value="https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=800">
+
+            <label class="form-label" style="font-size: 0.84rem;">Upload Custom Image:</label>
+            <input type="file" id="donate-custom-image-file" accept="image/*" class="form-control" style="padding: 8px;">
+
+            <div style="margin-top: 14px;">
+              <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Or Choose Food Photo Preset:</label>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="chip-btn image-preset-btn" data-img-url="https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=800">Biryani</button>
+                <button type="button" class="chip-btn image-preset-btn" data-img-url="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800">Veggies</button>
+                <button type="button" class="chip-btn image-preset-btn" data-img-url="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=800">Fruit Basket</button>
+                <button type="button" class="chip-btn image-preset-btn" data-img-url="https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800">Bread/Bakery</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="background: #F8FAFC;">
+            <h4 style="font-size: 0.94rem; font-weight: 700; color: var(--primary-green); margin-bottom: 6px;">💡 What happens after posting?</h4>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.45;">
+              1. Local registered welfare centres receive real-time push alerts.<br>
+              2. Staff reviews the listing and clicks "Accept Donation".<br>
+              3. You receive an in-app and email notification.<br>
+              4. Welfare volunteers arrive at your pickup address.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: NEAREST WELFARE CENTERS ================= -->
+    <section id="tab-centers" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><span>🏢</span> Nearest Welfare Centres & Food Banks</h2>
+          <p class="section-desc">Find government and FoodLink verified charities, orphanages, and community shelters in your area.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="detect-centers-location-btn">
+            📍 Detect My Location
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: 14px;">
+          <input type="text" id="centers-search-input" class="form-control" placeholder="Search welfare centre by name, locality or street...">
+          <select id="centers-radius-select" class="form-control" style="width: auto;">
+            <option value="5">Within 5 km</option>
+            <option value="15">Within 15 km</option>
+            <option value="25" selected>Within 25 km</option>
+            <option value="all">Show All Centres</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Centers List Container -->
+      <div id="centers-list-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: WELFARE PORTAL & ADMIN ================= -->
+    <section id="tab-welfare" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" style="color: var(--primary-purple);"><span>🛡️</span> Welfare Organisation & Admin Portal</h2>
+          <p class="section-desc">Manage food claims, perform food freshness inspections, and verify NGO registration credentials.</p>
+        </div>
+      </div>
+
+      <!-- Subtabs -->
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <button class="chip-btn welfare-subtab-btn active" data-subtab="feed">🍲 Available Food Feed</button>
+        <button class="chip-btn welfare-subtab-btn" data-subtab="register">📝 Register New Centre</button>
+        <button class="chip-btn welfare-subtab-btn" data-subtab="admin">🔐 Admin Verification Portal</button>
+      </div>
+
+      <!-- Subpane 1: Incoming Feed -->
+      <div id="welfare-pane-feed" class="welfare-subpane">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 14px;">Live Incoming Donations for Review</h3>
+        <div id="welfare-feed-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Subpane 2: Register New Centre -->
+      <div id="welfare-pane-register" class="welfare-subpane" style="display: none;">
+        <div class="card" style="max-width: 650px;">
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Register Your Welfare Organisation</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px;">
+            Registered NGOs, shelters, and relief trusts receive instant donation alerts and food pickup requests.
+          </p>
+
+          <form id="welfare-registration-form">
+            <div class="form-group">
+              <label class="form-label">Organisation / Centre Name *</label>
+              <input type="text" id="welfare-reg-name" class="form-control" placeholder="e.g. Hope Foundation Shelter" required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group">
+                <label class="form-label">Official Email *</label>
+                <input type="email" id="welfare-reg-email" class="form-control" placeholder="contact@organisation.org" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone Helpline *</label>
+                <input type="tel" id="welfare-reg-phone" class="form-control" placeholder="+91 40 2345 6789" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Centre Physical Address *</label>
+              <input type="text" id="welfare-reg-address" class="form-control" placeholder="Street, Locality, City, State, PIN" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Society / NGO Registration Number *</label>
+              <input type="text" id="welfare-reg-number" class="form-control" placeholder="e.g. NGO-TS-2024-91823" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Upload Registration Certificate (JPG / PNG / PDF under 10MB)</label>
+              <input type="file" id="welfare-reg-certificate" class="form-control" accept="image/*,.pdf">
+            </div>
+
+            <button type="submit" class="btn btn-purple btn-block" style="padding: 14px;">
+              Submit Welfare Application
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Subpane 3: Admin Verification -->
+      <div id="welfare-pane-admin" class="welfare-subpane" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 700;">Welfare Centre Verification Queue</h3>
+            <p style="font-size: 0.84rem; color: var(--text-muted);">Admin access for <strong>mustafa79996@gmail.com</strong></p>
+          </div>
+          <button class="btn btn-outline btn-sm demo-login-btn" data-role="admin">
+            Switch to Admin Mustafa
+          </button>
+        </div>
+
+        <div id="admin-applications-list">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: AI SUPPORT CHAT ================= -->
+    <section id="tab-support" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><span>💬</span> FoodLink AI Support Assistant</h2>
+          <p class="section-desc">Instant guidance on food safety, certificate uploads, finding centres, and voice dictation.</p>
+        </div>
+      </div>
+
+      <div class="chat-window">
+        <!-- Messages Flow -->
+        <div class="chat-messages" id="chat-messages-container">
+          <div class="chat-bubble bot">
+            Hello! I am your FoodLink AI Assistant. I can guide you through donating surplus food, food safety guidelines, finding verified welfare centres, NGO certificate verification, and voice dictation. How can I help you today?
+          </div>
+        </div>
+
+        <!-- Suggested Question Pills -->
+        <div class="chat-suggestions">
+          <button class="suggestion-pill" data-prompt="How do I donate food?">🍲 How do I donate food?</button>
+          <button class="suggestion-pill" data-prompt="What food safety checks are required?">🛡️ Food safety checklist</button>
+          <button class="suggestion-pill" data-prompt="I cannot find nearby welfare centres">🏢 Find nearby centres</button>
+          <button class="suggestion-pill" data-prompt="My welfare centre certificate upload failed">📄 Certificate upload error</button>
+          <button class="suggestion-pill" data-prompt="How does voice input work?">🎙️ Voice dictation</button>
+        </div>
+
+        <!-- Chat Input Row with Mic -->
+        <div class="chat-input-row">
+          <div class="input-with-action" style="flex: 1;">
+            <input type="text" id="chat-input-box" class="form-control" placeholder="Ask a question or report an issue...">
+            <button type="button" class="mic-btn" id="mic-chat-input" title="Speak to dictate question">🎙️</button>
+          </div>
+          <button class="btn btn-primary" id="chat-send-btn">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 6: PROFILE & IMPACT ================= -->
+    <section id="tab-profile" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" style="color: var(--primary-purple);"><span>👤</span> Donor Profile & Community Impact</h2>
+          <p class="section-desc">Track your donations, hunger relief impact, and manage your account settings.</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+        <div class="card" style="text-align: center;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary-purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 14px; font-weight: 800;">
+            M
+          </div>
+          <h3 id="profile-name" style="font-size: 1.25rem; font-weight: 800;">Mohammed Mustafa</h3>
+          <p id="profile-email" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 8px;">mustafa79996@gmail.com</p>
+          <span class="status-pill status-accepted" id="profile-role">Welfare Administrator</span>
+
+          <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px; text-align: left;">
+            <div style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 6px;">QUICK ROLE SIMULATION:</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button class="btn btn-outline btn-sm demo-login-btn" data-role="donor">Login as Community Donor</button>
+              <button class="btn btn-outline btn-sm demo-login-btn" data-role="welfare">Login as Welfare NGO Staff</button>
+              <button class="btn btn-outline btn-sm demo-login-btn" data-role="admin">Login as Welfare Admin</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <!-- Impact Metrics Grid -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
+            <div class="card" style="padding: 16px; text-align: center;">
+              <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary-green);" id="profile-donations-count">12</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted);">Donations Made</div>
+            </div>
+            <div class="card" style="padding: 16px; text-align: center;">
+              <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary-purple);" id="profile-people-fed">240+</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted);">People Nourished</div>
+            </div>
+            <div class="card" style="padding: 16px; text-align: center;">
+              <div style="font-size: 1.8rem; font-weight: 800; color: var(--amber-orange);">98 kg</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted);">Food Waste Saved</div>
+            </div>
+          </div>
+
+          <!-- Badges & Achievements -->
+          <div class="card">
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 12px;">🌟 Community Badges & Recognition</h4>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <div class="hero-stat-chip" style="background: var(--light-green); border-color: var(--mint-green); color: var(--primary-green);">
+                <span>🎖️</span> Zero Hunger Champion
+              </div>
+              <div class="hero-stat-chip" style="background: var(--light-purple); border-color: #C4B5FD; color: var(--primary-purple);">
+                <span>⭐</span> 100% Quality Verified
+              </div>
+              <div class="hero-stat-chip" style="background: var(--light-amber); border-color: #FDE68A; color: var(--amber-orange);">
+                <span>⚡</span> Rapid Responder
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= Mobile Bottom Navigation ================= -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-btn active" data-tab="donations">
+      <span class="icon">🍲</span>
+      <span>Feed</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="donate">
+      <span class="icon">➕</span>
+      <span>Donate</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="centers">
+      <span class="icon">🏢</span>
+      <span>Centres</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="welfare">
+      <span class="icon">🛡️</span>
+      <span>Portal</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="support">
+      <span class="icon">💬</span>
+      <span>Support</span>
+    </button>
+  </nav>
+
+  <!-- ================= MODAL 1: DONATION DETAILS ================= -->
+  <div class="modal-overlay" id="donation-detail-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h4 class="modal-title">Donation Details</h4>
+        <button class="modal-close-btn" onclick="closeActiveModal('donation-detail-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="donation-detail-body">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 2: WELFARE QUALITY CHECKLIST ================= -->
+  <div class="modal-overlay" id="quality-checklist-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h4 class="modal-title" style="color: var(--primary-purple);">🌟 Welfare Food Quality Inspection</h4>
+        <button class="modal-close-btn" onclick="closeActiveModal('quality-checklist-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+          Inspect the item upon collection or delivery to certify food safety for distribution:
+        </p>
+
+        <h4 id="audit-food-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: var(--primary-green);"></h4>
+
+        <form id="quality-inspection-form">
+          <div class="safety-box" style="background: #F5F3FF; border-color: #DDD6FE;">
+            <label class="safety-item">
+              <input type="checkbox" id="audit-fresh" checked required>
+              <span class="safety-item-label" style="color: #4C1D95;">
+                <strong>Food Freshness Confirmed:</strong> Aroma, appearance, and temperature verify freshness.
+              </span>
+            </label>
+
+            <label class="safety-item">
+              <input type="checkbox" id="audit-quality" checked required>
+              <span class="safety-item-label" style="color: #4C1D95;">
+                <strong>Hygiene & Quality Standard:</strong> Food meets acceptable sanitary standards for human consumption.
+              </span>
+            </label>
+
+            <label class="safety-item">
+              <input type="checkbox" id="audit-packaging" checked required>
+              <span class="safety-item-label" style="color: #4C1D95;">
+                <strong>Packaging Condition:</strong> Containers are intact, clean, and properly labeled.
+              </span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="audit-notes">Inspector Feedback Notes (Optional)</label>
+            <textarea id="audit-notes" class="form-control" rows="2" placeholder="e.g. Received in hot insulated box, distributed to 25 children."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-purple btn-block">
+            Confirm & Save Quality Audit
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 3: NOTIFICATIONS DRAWER ================= -->
+  <div class="modal-overlay" id="notifications-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h4 class="modal-title">🔔 Notifications</h4>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="btn btn-outline btn-sm" id="mark-all-read-btn" style="padding: 2px 8px; font-size: 0.76rem;">
+            Mark All Read
+          </button>
+          <button class="modal-close-btn" id="close-notifications-btn">&times;</button>
+        </div>
+      </div>
+
+      <!-- Role Tabs -->
+      <div style="display: flex; border-bottom: 1px solid var(--border-color); background: #F8FAFC;">
+        <button class="chip-btn notif-filter-tab active" data-role="all" style="border-radius: 0; flex: 1; border: none; justify-content: center;">All</button>
+        <button class="chip-btn notif-filter-tab" data-role="donor" style="border-radius: 0; flex: 1; border: none; justify-content: center;">Donor Updates</button>
+        <button class="chip-btn notif-filter-tab" data-role="welfare" style="border-radius: 0; flex: 1; border: none; justify-content: center;">Welfare Alerts</button>
+      </div>
+
+      <div style="max-height: 400px; overflow-y: auto;" id="notifications-list-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 4: AUTH & ACCOUNT MODAL ================= -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h4 class="modal-title">FoodLink Account</h4>
+        <button class="modal-close-btn" id="close-auth-modal-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: var(--light-green); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px;">
+          <h5 style="font-size: 0.88rem; font-weight: 700; color: var(--primary-green); margin-bottom: 4px;">🚀 One-Click Demo Role Switch</h5>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">Select a profile to immediately test role-specific capabilities:</p>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button class="btn btn-primary btn-sm demo-login-btn" data-role="donor">
+              👤 Mohammed Mustafa (Donor)
+            </button>
+            <button class="btn btn-purple btn-sm demo-login-btn" data-role="welfare">
+              🏢 Hope Foundation (Welfare Centre)
+            </button>
+            <button class="btn btn-outline btn-sm demo-login-btn" data-role="admin">
+              🔐 mustafa79996@gmail.com (Welfare Admin)
+            </button>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin: 14px 0; color: var(--text-muted); font-size: 0.82rem;">— OR SIGN IN WITH CREDENTIALS —</div>
+
+        <form id="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="auth-email">Email Address</label>
+            <input type="email" id="auth-email" class="form-control" placeholder="user@example.com" value="mustafa79996@gmail.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="auth-password">Password</label>
+            <input type="password" id="auth-password" class="form-control" value="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/mock-data.js"></script>
+  <script src="js/firebase-service.js"></script>
+  <script src="js/support-chat.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

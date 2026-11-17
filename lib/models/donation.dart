@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Donation {
   final String id;
   final String donorId;
+  final String donorEmail;
   final String donorName;
   final String foodName;
   final String category;
@@ -13,11 +14,15 @@ class Donation {
   final String contactNumber;
   final String imageUrl;
   final DateTime createdAt;
+  final String status;
+  final String updatedBy;
   final Map<String, bool> foodSafetyChecklist;
+  final Map<String, dynamic>? welfareChecklist;
 
   Donation({
     required this.id,
     this.donorId = '',
+    this.donorEmail = '',
     required this.donorName,
     required this.foodName,
     required this.category,
@@ -27,27 +32,71 @@ class Donation {
     required this.contactNumber,
     required this.imageUrl,
     required this.createdAt,
+    this.status = 'pending',
+    this.updatedBy = '',
     this.foodSafetyChecklist = const {},
+    this.welfareChecklist,
   });
+
+  bool get hasWelfareChecklist =>
+      welfareChecklist != null && welfareChecklist!.isNotEmpty;
+  bool get isFoodFreshConfirmed =>
+      welfareChecklist?['isFresh'] == true;
+  bool get isFoodGoodQualityConfirmed =>
+      welfareChecklist?['isGoodQuality'] == true;
 
   factory Donation.fromMap(Map<String, dynamic> data, String id) {
     return Donation(
       id: id,
-      donorId: data['userId'] as String? ?? '',
-      donorName: data['donorName'] as String? ?? 'Anonymous',
-      foodName: data['foodName'] as String? ?? '',
-      category: data['category'] as String? ?? 'Other',
-      quantity: (data['quantity'] as num?)?.toInt() ?? 0,
+      donorId: (data['userId'] ?? data['donorId'] ?? '')?.toString() ?? '',
+      donorEmail: data['donorEmail']?.toString() ?? '',
+      donorName: data['donorName']?.toString() ?? 'Anonymous',
+      foodName: data['foodName']?.toString() ?? '',
+      category: data['category']?.toString() ?? 'Other',
+      quantity: _parseQuantity(data['quantity']),
       expiryDate: _dateFromValue(data['expiryDate']) ?? DateTime.now(),
-      pickupAddress: data['pickupAddress'] as String? ?? '',
-      contactNumber: data['contactNumber'] as String? ?? '',
-      imageUrl: data['imageUrl'] as String? ?? '',
+      pickupAddress: data['pickupAddress']?.toString() ?? '',
+      contactNumber: data['contactNumber']?.toString() ?? '',
+      imageUrl: data['imageUrl']?.toString() ?? '',
       createdAt: _dateFromValue(data['createdAt']) ?? DateTime.now(),
-      foodSafetyChecklist:
-          (data['foodSafetyChecklist'] as Map<String, dynamic>? ?? {}).map(
-            (key, value) => MapEntry(key, value == true),
-          ),
+      status: (data['status']?.toString() ?? 'pending').toLowerCase(),
+      updatedBy: data['updatedBy']?.toString() ?? '',
+      foodSafetyChecklist: _parseSafetyChecklist(data['foodSafetyChecklist']),
+      welfareChecklist: _parseWelfareChecklist(data['welfareChecklist']),
     );
+  }
+
+  static int _parseQuantity(Object? value) {
+    if (value == null) return 1;
+    if (value is num) return value.toInt();
+    if (value is String) {
+      final direct = int.tryParse(value.trim());
+      if (direct != null) return direct;
+      // Extract first sequence of digits, e.g. "5 plates" -> 5
+      final match = RegExp(r'\d+').firstMatch(value);
+      if (match != null) {
+        return int.tryParse(match.group(0)!) ?? 1;
+      }
+    }
+    return 1;
+  }
+
+  static Map<String, bool> _parseSafetyChecklist(Object? value) {
+    if (value is! Map) return const {};
+    final result = <String, bool>{};
+    for (final entry in value.entries) {
+      result[entry.key.toString()] = entry.value == true;
+    }
+    return result;
+  }
+
+  static Map<String, dynamic>? _parseWelfareChecklist(Object? value) {
+    if (value is! Map) return null;
+    final result = <String, dynamic>{};
+    for (final entry in value.entries) {
+      result[entry.key.toString()] = entry.value;
+    }
+    return result;
   }
 
   static DateTime? _dateFromValue(Object? value) {
@@ -59,6 +108,9 @@ class Donation {
 
   Map<String, dynamic> toMap() {
     return {
+      'donorId': donorId,
+      'userId': donorId,
+      'donorEmail': donorEmail,
       'donorName': donorName,
       'foodName': foodName,
       'category': category,
@@ -68,7 +120,48 @@ class Donation {
       'contactNumber': contactNumber,
       'imageUrl': imageUrl,
       'createdAt': Timestamp.fromDate(createdAt),
+      'status': status,
+      'updatedBy': updatedBy,
       'foodSafetyChecklist': foodSafetyChecklist,
+      if (welfareChecklist != null) 'welfareChecklist': welfareChecklist,
     };
+  }
+
+  Donation copyWith({
+    String? id,
+    String? donorId,
+    String? donorEmail,
+    String? donorName,
+    String? foodName,
+    String? category,
+    int? quantity,
+    DateTime? expiryDate,
+    String? pickupAddress,
+    String? contactNumber,
+    String? imageUrl,
+    DateTime? createdAt,
+    String? status,
+    String? updatedBy,
+    Map<String, bool>? foodSafetyChecklist,
+    Map<String, dynamic>? welfareChecklist,
+  }) {
+    return Donation(
+      id: id ?? this.id,
+      donorId: donorId ?? this.donorId,
+      donorEmail: donorEmail ?? this.donorEmail,
+      donorName: donorName ?? this.donorName,
+      foodName: foodName ?? this.foodName,
+      category: category ?? this.category,
+      quantity: quantity ?? this.quantity,
+      expiryDate: expiryDate ?? this.expiryDate,
+      pickupAddress: pickupAddress ?? this.pickupAddress,
+      contactNumber: contactNumber ?? this.contactNumber,
+      imageUrl: imageUrl ?? this.imageUrl,
+      createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+      updatedBy: updatedBy ?? this.updatedBy,
+      foodSafetyChecklist: foodSafetyChecklist ?? this.foodSafetyChecklist,
+      welfareChecklist: welfareChecklist ?? this.welfareChecklist,
+    );
   }
 }

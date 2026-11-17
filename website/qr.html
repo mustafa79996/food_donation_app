@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodLink — QR Code Hub & Download Center</title>
+  <link rel="icon" type="image/svg+xml" href="assets/qr/foodlink_qr.svg">
+  <style>
+    :root {
+      --primary-green: #0F5132;
+      --brand-green: #135D39;
+      --light-green: #E8F5E9;
+      --mint-bg: #F0FDF4;
+      --text-dark: #1E293B;
+      --text-muted: #64748B;
+      --border-color: #E2E8F0;
+      --white: #FFFFFF;
+      --amber: #D97706;
+      --light-amber: #FEF3C7;
+      --purple: #5B4DDF;
+      --light-purple: #EDE9FE;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    body {
+      background: #F8FAFC;
+      color: var(--text-dark);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    /* Header */
+    .header-banner {
+      background: linear-gradient(135deg, var(--primary-green) 0%, var(--brand-green) 100%);
+      color: var(--white);
+      padding: 40px 24px 50px;
+      text-align: center;
+      position: relative;
+    }
+
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .header-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .header-subtitle {
+      font-size: 1.05rem;
+      color: #E2E8F0;
+      max-width: 650px;
+      margin: 0 auto 20px;
+    }
+
+    .header-url-chip {
+      display: inline-flex;
+      align-items: center;
+      background: var(--white);
+      color: var(--primary-green);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      box-shadow: var(--shadow-md);
+      text-decoration: none;
+      transition: transform 0.15s ease;
+    }
+
+    .header-url-chip:hover {
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 1160px;
+      margin: -24px auto 0;
+      padding: 0 20px;
+    }
+
+    .back-nav {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary-green);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      background: var(--white);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .back-link:hover {
+      background: var(--light-green);
+    }
+
+    /* Grid of QR Cards */
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--light-green);
+      color: var(--primary-green);
+    }
+
+    .badge-pill.amber {
+      background: var(--light-amber);
+      color: var(--amber);
+    }
+
+    .badge-pill.purple {
+      background: var(--light-purple);
+      color: var(--purple);
+    }
+
+    .card-preview {
+      background: #F8FAFC;
+      border: 1px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 18px;
+      min-height: 280px;
+    }
+
+    .card-preview img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .poster-preview img {
+      max-height: 380px;
+      width: auto;
+    }
+
+    .card-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary-green);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background: var(--brand-green);
+    }
+
+    .btn-outline {
+      background: var(--white);
+      color: var(--text-dark);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-outline:hover {
+      background: #F1F5F9;
+      border-color: #CBD5E1;
+    }
+
+    /* Generator Section */
+    .generator-section {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      padding: 32px;
+      margin-bottom: 36px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+    }
+
+    .section-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .gen-grid {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 32px;
+      align-items: center;
+    }
+
+    @media (max-width: 800px) {
+      .gen-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-green);
+      box-shadow: 0 0 0 3px rgba(15, 81, 50, 0.12);
+    }
+
+    .preset-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .preset-chip {
+      background: #F1F5F9;
+      border: 1px solid var(--border-color);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      color: var(--text-dark);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .preset-chip:hover {
+      background: var(--light-green);
+      border-color: var(--primary-green);
+      color: var(--primary-green);
+    }
+
+    .custom-preview-box {
+      background: #F8FAFC;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+    }
+
+    #custom-qr-canvas {
+      background: var(--white);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Print Specific Styling */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .header-banner, .back-nav, .generator-section, .qr-grid .card:not(.poster-card), .card-actions, .badge-top {
+        display: none !important;
+      }
+      .container {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+      }
+      .qr-grid {
+        display: block;
+      }
+      .poster-card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+      .poster-preview img {
+        max-height: 98vh;
+        width: auto;
+        display: block;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= Header Banner ================= -->
+  <header class="header-banner">
+    <div class="badge-top">
+      <span>🍲</span> FoodLink Android APK Download
+    </div>
+    <h1 class="header-title">Scan to Download FoodLink APK</h1>
+    <p class="header-subtitle">
+      Scan with your Android phone camera to download and install the FoodLink application package directly.
+    </p>
+    <a href="http://192.168.0.144:8080/foodlink.apk" target="_blank" class="header-url-chip">
+      📥 http://192.168.0.144:8080/foodlink.apk
+    </a>
+  </header>
+
+  <main class="container">
+    <div class="back-nav">
+      <a href="index.html" class="back-link">
+        ← Back to FoodLink Web App
+      </a>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">
+        Generated for: <strong>food-donation-app-9540f.web.app</strong>
+      </span>
+    </div>
+
+    <!-- ================= QR Grid ================= -->
+    <div class="qr-grid">
+
+      <!-- 1. Marketing Poster -->
+      <div class="card poster-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🖼️</span> Marketing Poster Flyer
+          </div>
+          <span class="badge-pill amber">Ready to Print</span>
+        </div>
+        <div class="card-preview poster-preview">
+          <img src="assets/qr/foodlink_qr_poster.png" alt="FoodLink Printable Poster" id="poster-img">
+        </div>
+        <p class="card-meta">
+          High-resolution 1080×1480 graphic flyer with FoodLink branding, safety badges, and instructions. Ideal for restaurant billing desks, community boards, or welfare centers.
+        </p>
+        <div class="card-actions">
+          <a href="assets/qr/foodlink_qr_poster.png" download="FoodLink_Poster.png" class="btn btn-primary">
+            📥 Download Poster (PNG)
+          </a>
+          <button onclick="window.print()" class="btn btn-outline">
+            🖨️ Print
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Branded Forest Green QR Code -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🌱</span> Branded App QR Code
+          </div>
+          <span class="badge-pill">High Error H-30%</span>
+        </div>
+        <div class="card-preview">
+          <img src="assets/qr/foodlink_qr_brand.png" alt="FoodLink Branded QR Code" style="width: 220px; height: 220px;">
+        </div>
+        <p class="card-meta">
+          Deep Forest Green (<code>#0F5132</code>) QR code with embedded FoodLink centerpiece badge. Perfect for digital cards, social media posts, and app banners.
+        </p>
+        <div class="card-actions">
+          <a href="assets/qr/foodlink_qr_brand.png" download="FoodLink_QR_Branded.png" class="btn btn-primary">
+            📥 Download Branded (PNG)
+          </a>
+          <a href="assets/qr/foodlink_qr_clean.png" download="FoodLink_QR_Green.png" class="btn btn-outline" title="Green without center logo">
+            Clean Green
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. Standard & SVG Vector QR Code -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📐</span> Vector SVG & High-Contrast
+          </div>
+          <span class="badge-pill purple">Print & Packaging</span>
+        </div>
+        <div class="card-preview">
+          <img src="assets/qr/foodlink_qr_standard.png" alt="FoodLink Standard QR Code" style="width: 220px; height: 220px;">
+        </div>
+        <p class="card-meta">
+          Lossless SVG vector graphic and high-contrast black & white PNG. Use SVG for packaging labels, vehicle decals, or large billboard banners with zero blurriness.
+        </p>
+        <div class="card-actions">
+          <a href="assets/qr/foodlink_qr.svg" download="FoodLink_QR.svg" class="btn btn-primary">
+            📥 Download Vector (SVG)
+          </a>
+          <a href="assets/qr/foodlink_qr_standard.png" download="FoodLink_QR_Standard.png" class="btn btn-outline">
+            Standard (PNG)
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= Live Custom QR Generator ================= -->
+    <section class="generator-section">
+      <h2 class="section-title">⚡ Instant Custom QR Code Generator</h2>
+      <p class="section-desc">
+        Need to generate a QR code for a local Wi-Fi test, a staging server, direct APK download, or a custom domain? Type or select below:
+      </p>
+
+      <div class="gen-grid">
+        <div class="gen-form">
+          <div class="form-group">
+            <label class="form-label" for="custom-url-input">Target URL / Deep Link</label>
+            <input type="text" id="custom-url-input" class="form-control" value="http://192.168.0.144:8080/foodlink.apk" placeholder="https://...">
+            <div class="preset-chips">
+              <span class="preset-chip" onclick="setPreset('http://192.168.0.144:8080/foodlink.apk')">📥 Direct APK (Wi-Fi)</span>
+              <span class="preset-chip" onclick="setPreset('http://192.168.0.144:8080/')">📱 Mobile Download Page</span>
+              <span class="preset-chip" onclick="setPreset('https://food-donation-app-9540f.web.app')">🌐 Firebase Web App</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Color Theme</label>
+            <div style="display: flex; gap: 12px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem;">
+                <input type="radio" name="qr-color" value="#0F5132" checked onchange="regenerateCustomQR()">
+                <span style="display: inline-block; width: 16px; height: 16px; background: #0F5132; border-radius: 4px;"></span> Forest Green
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem;">
+                <input type="radio" name="qr-color" value="#000000" onchange="regenerateCustomQR()">
+                <span style="display: inline-block; width: 16px; height: 16px; background: #000000; border-radius: 4px;"></span> Classic Black
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem;">
+                <input type="radio" name="qr-color" value="#5B4DDF" onchange="regenerateCustomQR()">
+                <span style="display: inline-block; width: 16px; height: 16px; background: #5B4DDF; border-radius: 4px;"></span> Welfare Purple
+              </label>
+            </div>
+          </div>
+
+          <button onclick="downloadCustomQR()" class="btn btn-primary" style="margin-top: 10px; width: 100%;">
+            💾 Download Custom QR Code (PNG)
+          </button>
+        </div>
+
+        <div class="custom-preview-box">
+          <canvas id="custom-qr-canvas" width="220" height="220"></canvas>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 10px;" id="qr-target-preview">
+            Points to: https://food-donation-app-9540f.web.app
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Lightweight Standalone QR Generator Script -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script>
+    function setPreset(url) {
+      document.getElementById('custom-url-input').value = url;
+      regenerateCustomQR();
+    }
+
+    function regenerateCustomQR() {
+      const url = document.getElementById('custom-url-input').value.trim() || 'https://food-donation-app-9540f.web.app';
+      const canvas = document.getElementById('custom-qr-canvas');
+      const selectedColor = document.querySelector('input[name="qr-color"]:checked')?.value || '#0F5132';
+
+      document.getElementById('qr-target-preview').textContent = 'Points to: ' + url;
+
+      if (window.QRCode && window.QRCode.toCanvas) {
+        window.QRCode.toCanvas(canvas, url, {
+          width: 220,
+          margin: 2,
+          color: {
+            dark: selectedColor,
+            light: '#FFFFFF'
+          },
+          errorCorrectionLevel: 'H'
+        }, function (error) {
+          if (error) console.error(error);
+        });
+      } else {
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.src = 'assets/qr/foodlink_qr_standard.png';
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, 220, 220);
+        };
+      }
+    }
+
+    function downloadCustomQR() {
+      const canvas = document.getElementById('custom-qr-canvas');
+      const link = document.createElement('a');
+      link.download = 'FoodLink_Custom_QR.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(regenerateCustomQR, 300);
+      document.getElementById('custom-url-input').addEventListener('input', regenerateCustomQR);
+    });
+  </script>
+</body>
+</html>

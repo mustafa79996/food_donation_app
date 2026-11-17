@@ -102,15 +102,21 @@ class _NearestWelfareCentersScreenState
             final centers = <WelfareCenter>[];
             for (final doc in snapshot.docs) {
               final data = doc.data();
-              final lat = (data['latitude'] as num?)?.toDouble();
-              final lon = (data['longitude'] as num?)?.toDouble();
+              final latRaw = data['latitude'];
+              final lonRaw = data['longitude'];
+              final lat = latRaw is num
+                  ? latRaw.toDouble()
+                  : (latRaw is String ? double.tryParse(latRaw.trim()) : null);
+              final lon = lonRaw is num
+                  ? lonRaw.toDouble()
+                  : (lonRaw is String ? double.tryParse(lonRaw.trim()) : null);
               if (lat == null || lon == null) continue;
               centers.add(
                 WelfareCenter(
-                  name: data['name'] as String? ?? 'Welfare Centre',
-                  address: data['address'] as String? ?? '',
+                  name: data['name']?.toString() ?? 'Welfare Centre',
+                  address: data['address']?.toString() ?? '',
                   distance: '',
-                  phone: data['phone'] as String? ?? '',
+                  phone: data['phone']?.toString() ?? '',
                   latitude: lat,
                   longitude: lon,
                 ),

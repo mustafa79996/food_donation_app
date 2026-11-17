@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../utils/app_theme.dart';
 import '../utils/routes.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -50,7 +51,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -58,17 +68,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
+                Center(
+                  child: Container(
+                    width: 68,
+                    height: 68,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF15803D).withValues(alpha: 0.12),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 const Text(
                   'Join FoodLink',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                    letterSpacing: -0.4,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 const Text(
-                  'Sign up to share meals and reduce food waste.',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  'Sign up to donate surplus meals and reduce food waste.',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
                 Form(
                   key: _formKey,
                   child: Column(
@@ -76,11 +115,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       TextFormField(
                         controller: _nameController,
                         decoration: const InputDecoration(
-                          labelText: 'Full name',
-                          prefixIcon: Icon(Icons.person_outline),
+                          hintText: 'Full name',
+                          prefixIcon: Icon(
+                            Icons.person_outline,
+                            color: Color(0xFF64748B),
+                            size: 20,
+                          ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Enter your full name';
                           }
                           return null;
@@ -91,11 +134,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined),
+                          hintText: 'Email address',
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color: Color(0xFF64748B),
+                            size: 20,
+                          ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Enter your email';
                           }
                           if (!value.contains('@')) {
@@ -109,8 +156,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         controller: _passwordController,
                         obscureText: true,
                         decoration: const InputDecoration(
-                          labelText: 'Password',
-                          prefixIcon: Icon(Icons.lock_outline),
+                          hintText: 'Password',
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: Color(0xFF64748B),
+                            size: 20,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -122,26 +173,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 28),
-                      ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : _submit,
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
+                      const SizedBox(height: 26),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: authProvider.isLoading ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryGreen,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: authProvider.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              )
-                            : const Text('Sign Up'),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      OutlinedButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, Routes.login);
-                        },
-                        child: const Text('Back to Login'),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              Routes.login,
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryGreen,
+                            side: const BorderSide(color: Color(0xFFE2E8F0)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: const Text(
+                            'Back to Sign In',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

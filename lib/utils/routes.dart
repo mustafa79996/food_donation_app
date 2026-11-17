@@ -31,6 +31,7 @@ abstract class Routes {
   static const welfareRegistration = '/welfare-registration';
   static const welfareVerification = '/welfare-verification';
   static const supportChat = '/support-chat';
+  static const donationHistory = '/donation-history';
 
   static Map<String, Widget Function(BuildContext)> get routes => {
     login: (_) => const LoginScreen(),
@@ -38,6 +39,7 @@ abstract class Routes {
     main: (_) => const HomeScreen(),
     donate: (_) => const DonateFoodScreen(),
     foodList: (_) => const FoodListScreen(),
+    donationHistory: (_) => const FoodListScreen(initialMyDonations: true),
     profile: (_) => const ProfileScreen(),
     settings: (_) => const SettingsScreen(),
     nearestWelfareCenters: (_) => const NearestWelfareCentersScreen(),

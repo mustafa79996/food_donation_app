@@ -1,0 +1,20 @@
+{
+  "name": "foodlink-website",
+  "version": "1.0.0",
+  "description": "FoodLink Web Application - Connecting Food Donors with Verified Welfare Centres",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -s . -l 5000",
+    "dev": "npx serve -s . -l 3000",
+    "serve": "python -m http.server 8080"
+  },
+  "keywords": [
+    "food-donation",
+    "welfare",
+    "charity",
+    "foodlink",
+    "firebase"
+  ],
+  "author": "FoodLink Team",
+  "license": "MIT"
+}

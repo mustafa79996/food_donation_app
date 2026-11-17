@@ -160,4 +160,69 @@ void main() {
 
     expect(find.textContaining('Open Nearest Welfare Centers'), findsOneWidget);
   });
+
+  test('donation tracks status (pending, accepted, rejected), donor email and updater', () {
+    final pendingDonation = Donation.fromMap({
+      'userId': 'donor-001',
+      'donorEmail': 'donor@example.com',
+      'foodName': 'Vegetable Biryani',
+      'category': 'Meals',
+      'quantity': 10,
+      'status': 'pending',
+    }, 'd-1');
+    expect(pendingDonation.status, 'pending');
+    expect(pendingDonation.donorEmail, 'donor@example.com');
+
+    final acceptedDonation = Donation.fromMap({
+      'userId': 'donor-001',
+      'donorEmail': 'donor@example.com',
+      'foodName': 'Vegetable Biryani',
+      'status': 'accepted',
+      'updatedBy': 'Hope Welfare Centre',
+    }, 'd-2');
+    expect(acceptedDonation.status, 'accepted');
+    expect(acceptedDonation.updatedBy, 'Hope Welfare Centre');
+
+    final rejectedDonation = Donation.fromMap({
+      'userId': 'donor-001',
+      'donorEmail': 'donor@example.com',
+      'foodName': 'Vegetable Biryani',
+      'status': 'rejected',
+      'updatedBy': 'Hope Welfare Centre',
+    }, 'd-3');
+    expect(rejectedDonation.status, 'rejected');
+    expect(rejectedDonation.updatedBy, 'Hope Welfare Centre');
+
+    final map = acceptedDonation.toMap();
+    expect(map['status'], 'accepted');
+    expect(map['updatedBy'], 'Hope Welfare Centre');
+    expect(map['donorEmail'], 'donor@example.com');
+  });
+
+  test('donation supports welfare freshness & quality inspection checklist', () {
+    final inspectedDonation = Donation.fromMap({
+      'userId': 'donor-001',
+      'donorEmail': 'donor@example.com',
+      'foodName': 'Rice & Dal',
+      'status': 'accepted',
+      'updatedBy': 'Ananda Orphanage',
+      'welfareChecklist': {
+        'isFresh': true,
+        'isGoodQuality': true,
+        'isPackagingIntact': true,
+        'isSafeForDistribution': true,
+        'feedbackNotes': 'Food was hot and very fresh!',
+        'verifiedBy': 'Ananda Orphanage',
+      },
+    }, 'd-inspect');
+
+    expect(inspectedDonation.hasWelfareChecklist, isTrue);
+    expect(inspectedDonation.isFoodFreshConfirmed, isTrue);
+    expect(inspectedDonation.isFoodGoodQualityConfirmed, isTrue);
+    expect(inspectedDonation.welfareChecklist!['feedbackNotes'], 'Food was hot and very fresh!');
+
+    final map = inspectedDonation.toMap();
+    expect(map['welfareChecklist'], isNotNull);
+    expect((map['welfareChecklist'] as Map)['isFresh'], isTrue);
+  });
 }
