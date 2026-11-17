@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.foodLinkService.on('donations', () => {
     renderDonationsGrid();
     renderWelfareDonationsFeed();
+    renderAdminDonationsManageList();
   });
 
   window.foodLinkService.on('notifications', () => {
@@ -44,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserNavUI(user);
     renderDonationsGrid();
     renderWelfareDonationsFeed();
+    renderAdminDonationsManageList();
   });
 
   // Initial render
@@ -51,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNearestCentersList();
   renderWelfareDonationsFeed();
   renderWelfareApplicationsList();
+  renderAdminDonationsManageList();
   updateNotificationBadge();
   updateUserNavUI(window.foodLinkService.currentUser);
 });
@@ -364,8 +367,10 @@ function renderDonationsGrid() {
   const grid = document.getElementById('donations-grid-container');
   if (!grid) return;
 
-  const currentUid = window.foodLinkService.currentUser?.uid;
-  const currentEmail = window.foodLinkService.currentUser?.email?.toLowerCase();
+  const currentUser = window.foodLinkService.currentUser;
+  const isAdmin = currentUser?.isWelfareAdmin || currentUser?.role === 'admin' || (currentUser?.email && currentUser.email.toLowerCase() === 'mustafa79996@gmail.com');
+  const currentUid = currentUser?.uid;
+  const currentEmail = currentUser?.email?.toLowerCase();
 
   // Filter donations
   let list = window.foodLinkService.donations.filter(item => {
@@ -430,6 +435,8 @@ function renderDonationsGrid() {
     }
 
     const hasQualityAudit = item.welfareChecklist && item.welfareChecklist.completed;
+    const isOwner = (currentUid && item.donorId === currentUid) || (currentEmail && item.donorEmail && item.donorEmail.toLowerCase() === currentEmail);
+    const canRemove = isAdmin || isOwner;
 
     return `
       <div class="donation-card" data-id="${item.id}">
@@ -441,7 +448,10 @@ function renderDonationsGrid() {
         <div class="donation-content">
           <div class="donation-title-row">
             <h4 class="donation-title">${escapeHtml(item.foodName)}</h4>
-            <span class="status-pill ${statusClass}">${statusLabel}</span>
+            <div style="display: flex; gap: 5px; align-items: center;">
+              ${isAdmin ? '<span class="status-pill" style="background: #FEE2E2; color: #DC2626; border-color: rgba(220,38,38,0.2); font-size: 0.68rem; padding: 2px 7px;">Admin</span>' : ''}
+              <span class="status-pill ${statusClass}">${statusLabel}</span>
+            </div>
           </div>
           
           <div class="donation-meta-item">
@@ -467,7 +477,14 @@ function renderDonationsGrid() {
 
           <div class="donation-footer-row">
             <span style="font-size: 0.76rem; color: var(--text-muted);">${formatRelativeTime(item.createdAt)}</span>
-            <button class="btn btn-outline btn-sm view-details-btn" onclick="openDonationDetails('${item.id}')">View Details</button>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              ${canRemove ? `
+                <button class="admin-remove-btn" onclick="handleRemoveDonation('${item.id}', event)" title="${isAdmin && !isOwner ? 'Remove donation from list as Admin' : 'Delete donation'}">
+                  🗑️ ${isAdmin && !isOwner ? 'Remove' : 'Delete'}
+                </button>
+              ` : ''}
+              <button class="btn btn-outline btn-sm view-details-btn" onclick="openDonationDetails('${item.id}')">View Details</button>
+            </div>
           </div>
         </div>
       </div>
@@ -497,6 +514,11 @@ function updateMetricsCounters() {
 function openDonationDetails(donationId) {
   const item = window.foodLinkService.donations.find(d => d.id === donationId);
   if (!item) return;
+
+  const currentUser = window.foodLinkService.currentUser;
+  const isAdmin = currentUser?.isWelfareAdmin || currentUser?.role === 'admin' || (currentUser?.email && currentUser.email.toLowerCase() === 'mustafa79996@gmail.com');
+  const isOwner = currentUser?.uid && (item.donorId === currentUser.uid || (currentUser.email && item.donorEmail?.toLowerCase() === currentUser.email.toLowerCase()));
+  const canRemove = isAdmin || isOwner;
 
   const modal = document.getElementById('donation-detail-modal');
   const body = document.getElementById('donation-detail-body');
@@ -571,6 +593,15 @@ function openDonationDetails(donationId) {
         </div>
       </div>
     ` : ''}
+
+    ${canRemove ? `
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button class="btn btn-danger-outline btn-sm" onclick="handleRemoveDonation('${item.id}', event)">
+          🗑️ ${isAdmin && !isOwner ? 'Remove Donation from List (Admin)' : 'Delete Donation'}
+        </button>
+      </div>
+    ` : ''}
+  `;
   `;
 
   modal.classList.add('open');
@@ -713,6 +744,13 @@ function initWelfarePortal() {
       document.querySelectorAll('.welfare-subpane').forEach(p => p.style.display = 'none');
       const targetPane = document.getElementById(`welfare-pane-${subtab}`);
       if (targetPane) targetPane.style.display = 'block';
+
+      if (subtab === 'admin') {
+        renderWelfareApplicationsList();
+        renderAdminDonationsManageList();
+      } else if (subtab === 'feed') {
+        renderWelfareDonationsFeed();
+      }
     });
   });
 
@@ -774,6 +812,8 @@ function renderWelfareDonationsFeed() {
   if (!container) return;
 
   const donations = window.foodLinkService.donations;
+  const currentUser = window.foodLinkService.currentUser;
+  const isAdmin = currentUser?.isWelfareAdmin || currentUser?.role === 'admin' || (currentUser?.email && currentUser.email.toLowerCase() === 'mustafa79996@gmail.com');
 
   if (donations.length === 0) {
     container.innerHTML = `<p style="padding: 24px; color: var(--text-muted); text-align: center;">No active food donations found.</p>`;
@@ -791,7 +831,10 @@ function renderWelfareDonationsFeed() {
             <h4 style="font-size: 1.15rem; font-weight: 700;">${escapeHtml(d.foodName)}</h4>
             <span style="font-size: 0.82rem; color: var(--text-muted);">${d.category} • <strong>${d.quantity} Servings</strong></span>
           </div>
-          <span class="status-pill status-${d.status || 'pending'}">${d.status || 'Pending'}</span>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            ${isAdmin ? '<span class="status-pill" style="background: #FEE2E2; color: #DC2626; border-color: rgba(220,38,38,0.2); font-size: 0.68rem; padding: 2px 7px;">Admin</span>' : ''}
+            <span class="status-pill status-${d.status || 'pending'}">${d.status || 'Pending'}</span>
+          </div>
         </div>
 
         <div style="font-size: 0.86rem; color: var(--text-dark); margin-bottom: 8px;">
@@ -802,7 +845,7 @@ function renderWelfareDonationsFeed() {
           👤 <strong>Donor:</strong> ${escapeHtml(d.donorName)} (${escapeHtml(d.contactNumber)})
         </div>
 
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 12px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 12px; align-items: center;">
           ${isPending ? `
             <button class="btn btn-primary btn-sm" onclick="handleWelfareAcceptDonation('${d.id}')">
               ✓ Accept Donation
@@ -817,6 +860,12 @@ function renderWelfareDonationsFeed() {
           </button>
 
           <a href="tel:${d.contactNumber}" class="btn btn-outline btn-sm">📞 Call Donor</a>
+
+          ${isAdmin ? `
+            <button class="admin-remove-btn" onclick="handleRemoveDonation('${d.id}', event)">
+              🗑️ Remove from List
+            </button>
+          ` : ''}
         </div>
       </div>
     `;
@@ -900,6 +949,102 @@ async function reviewCentreApplication(appId, decision) {
   showToast(`Centre application marked as ${decision.toUpperCase()}!`);
   renderWelfareApplicationsList();
   renderNearestCentersList();
+}
+
+function renderAdminDonationsManageList() {
+  const container = document.getElementById('admin-donations-manage-list');
+  const countBadge = document.getElementById('admin-donations-count-badge');
+  if (!container) return;
+
+  const donations = window.foodLinkService.donations;
+  if (countBadge) {
+    countBadge.textContent = `${donations.length} Active Donation${donations.length === 1 ? '' : 's'}`;
+  }
+
+  if (donations.length === 0) {
+    container.innerHTML = `<p style="padding: 24px; color: var(--text-muted); text-align: center; background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color);">No active food donations found.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      ${donations.map(d => {
+        const status = (d.status || 'pending').toLowerCase();
+        let statusPillClass = 'status-pending';
+        let statusTitle = 'Pending';
+        if (status === 'accepted' || status === 'approved') {
+          statusPillClass = 'status-accepted';
+          statusTitle = 'Accepted';
+        } else if (status === 'rejected') {
+          statusPillClass = 'status-rejected';
+          statusTitle = 'Declined';
+        }
+
+        return `
+          <div class="card" style="padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 14px; min-width: 240px; flex: 1;">
+              <img src="${d.imageUrl || CATEGORY_DEFAULT_IMAGES[d.category] || CATEGORY_DEFAULT_IMAGES.Meals}" style="width: 54px; height: 54px; border-radius: 10px; object-fit: cover; flex-shrink: 0;" alt="${d.foodName}" />
+              <div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-dark);">${escapeHtml(d.foodName)}</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                  ${d.category} • <strong>${d.quantity} servings</strong> • Donor: ${escapeHtml(d.donorName)} (${escapeHtml(d.donorEmail || d.contactNumber || 'N/A')})
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                  📍 ${escapeHtml(d.pickupAddress)} • Posted: ${formatRelativeTime(d.createdAt)}
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+              <span class="status-pill ${statusPillClass}">${statusTitle}</span>
+              <button class="btn btn-outline btn-sm" onclick="openDonationDetails('${d.id}')">View</button>
+              <button class="admin-remove-btn" onclick="handleRemoveDonation('${d.id}', event)">
+                🗑️ Remove from List
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// Global removal handler for Admin & Donors
+async function handleRemoveDonation(donationId, event) {
+  if (event) {
+    event.stopPropagation();
+  }
+
+  const d = window.foodLinkService.donations.find(item => item.id === donationId);
+  const title = d ? d.foodName : 'this donation';
+  const currentUser = window.foodLinkService.currentUser;
+  const isAdmin = currentUser?.isWelfareAdmin || currentUser?.role === 'admin' || (currentUser?.email && currentUser.email.toLowerCase() === 'mustafa79996@gmail.com');
+
+  const confirmMsg = isAdmin
+    ? `As an administrator, are you sure you want to remove "${title}" from the donations list?`
+    : `Are you sure you want to delete "${title}"?`;
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  try {
+    await window.foodLinkService.deleteDonation(donationId);
+    showToast(`Donation "${title}" has been removed.`);
+
+    // Close detail modal if currently opened
+    const modal = document.getElementById('donation-detail-modal');
+    if (modal && modal.classList.contains('open')) {
+      modal.classList.remove('open');
+    }
+
+    renderDonationsGrid();
+    renderWelfareDonationsFeed();
+    renderAdminDonationsManageList();
+  } catch (err) {
+    console.error('Error removing donation:', err);
+    showToast('Failed to remove donation: ' + (err.message || err), 'error');
+  }
 }
 
 // ================= Notifications Drawer & Modal =================

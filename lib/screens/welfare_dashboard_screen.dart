@@ -202,6 +202,59 @@ class _WelfareDashboardScreenState extends State<WelfareDashboardScreen> {
     return '${dt.day} ${months[(dt.month - 1) % 12]} ${dt.year}';
   }
 
+  Future<void> _confirmDeleteDonation(Donation donation) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove donation?'),
+        content: Text(
+          'As an administrator, are you sure you want to remove "${donation.foodName}" from the list?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Remove',
+              style: TextStyle(
+                color: Color(0xFFDC2626),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('donations')
+          .doc(donation.id)
+          .delete();
+
+      _mockDonations.removeWhere((d) => d.id == donation.id);
+      _localStatusOverrides.remove(donation.id);
+
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Donation removed by admin')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to remove donation: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -664,6 +717,7 @@ class _WelfareDashboardScreenState extends State<WelfareDashboardScreen> {
                           context: context,
                           donation: donation,
                           currentStatus: currentStatus,
+                          isAdmin: isAdmin,
                         );
                       }),
                     const SizedBox(height: 16),
@@ -779,6 +833,7 @@ class _WelfareDashboardScreenState extends State<WelfareDashboardScreen> {
     required BuildContext context,
     required Donation donation,
     required String currentStatus,
+    required bool isAdmin,
   }) {
     return InkWell(
       onTap: () {
@@ -832,7 +887,7 @@ class _WelfareDashboardScreenState extends State<WelfareDashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Food Name + Pending Chip
+                      // Food Name + Pending Chip + Admin Delete
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -847,6 +902,28 @@ class _WelfareDashboardScreenState extends State<WelfareDashboardScreen> {
                             ),
                           ),
                           StatusPill(status: currentStatus),
+                          if (isAdmin) ...[
+                            const SizedBox(width: 6),
+                            InkWell(
+                              onTap: () => _confirmDeleteDonation(donation),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEE2E2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: const Color(0xFFFCA5A5),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 18,
+                                  color: Color(0xFFDC2626),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 6),

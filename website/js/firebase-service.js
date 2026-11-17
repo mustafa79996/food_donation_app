@@ -518,6 +518,27 @@ class FoodLinkService {
     return true;
   }
 
+  // --- Delete Donation ---
+  async deleteDonation(donationId) {
+    const index = this.donations.findIndex(d => d.id === donationId);
+    let removed = null;
+    if (index !== -1) {
+      removed = this.donations.splice(index, 1)[0];
+    }
+
+    if (this.db) {
+      try {
+        await this.db.collection('donations').doc(donationId).delete();
+      } catch (e) {
+        console.warn('Firestore delete notice:', e.message);
+      }
+    }
+
+    this._saveDonations();
+    this._emit('donations', this.donations);
+    return true;
+  }
+
   // --- Notifications & Emails ---
   async _notifyDonationCreated(donation) {
     // 1. Donor notification

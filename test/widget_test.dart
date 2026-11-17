@@ -6,6 +6,7 @@ import 'package:food_donation_app/models/donation.dart';
 import 'package:food_donation_app/main.dart';
 import 'package:food_donation_app/screens/nearest_welfare_centers_screen.dart';
 import 'package:food_donation_app/screens/support_chat_screen.dart';
+import 'package:food_donation_app/utils/admin_config.dart';
 import 'package:food_donation_app/utils/voice_input.dart';
 
 void main() {
@@ -224,5 +225,10 @@ void main() {
     final map = inspectedDonation.toMap();
     expect(map['welfareChecklist'], isNotNull);
     expect((map['welfareChecklist'] as Map)['isFresh'], isTrue);
+  });
+
+  test('admin configuration identifies authorized administrator accounts', () {
+    expect(welfareAdminEmail, 'mustafa79996@gmail.com');
+    expect(welfareAdminEmails.contains('mustafa79996@gmail.com'), isTrue);
   });
 }

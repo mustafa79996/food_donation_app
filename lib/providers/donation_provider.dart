@@ -239,6 +239,12 @@ class DonationProvider extends ChangeNotifier {
     );
   }
 
+  Future<void> deleteDonation(String donationId) async {
+    await _firestore.collection('donations').doc(donationId).delete();
+    _donations.removeWhere((d) => d.id == donationId);
+    notifyListeners();
+  }
+
   void updateSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();

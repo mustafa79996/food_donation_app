@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/donation.dart';
 import '../providers/donation_provider.dart';
 import '../services/notification_service.dart';
+import '../utils/admin_config.dart';
 import '../utils/app_theme.dart';
 import '../utils/routes.dart';
 import '../utils/voice_input.dart';
@@ -541,12 +542,22 @@ class DonationCard extends StatelessWidget {
   const DonationCard({super.key, required this.donation});
 
   Future<void> _deleteDonation(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final isAdmin = isWelfareAdmin(user);
+    final isOwner = donation.donorId == user?.uid ||
+        (user?.email != null && donation.donorEmail == user!.email);
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete donation?'),
-        content:
-            const Text('Are you sure you want to delete this donation?'),
+        title: Text(isAdmin && !isOwner
+            ? 'Remove donation (Admin)?'
+            : 'Delete donation?'),
+        content: Text(
+          isAdmin && !isOwner
+              ? 'As an administrator, are you sure you want to remove "${donation.foodName}" from the public list?'
+              : 'Are you sure you want to delete this donation?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -554,9 +565,12 @@ class DonationCard extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
+            child: Text(
+              isAdmin && !isOwner ? 'Remove' : 'Delete',
+              style: const TextStyle(
+                color: Color(0xFFDC2626),
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -573,7 +587,11 @@ class DonationCard extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Donation deleted')),
+          SnackBar(
+            content: Text(isAdmin && !isOwner
+                ? 'Donation removed by admin'
+                : 'Donation deleted'),
+          ),
         );
       }
     } catch (e) {
@@ -608,6 +626,8 @@ class DonationCard extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final isOwner = donation.donorId == user?.uid ||
         (user?.email != null && donation.donorEmail == user!.email);
+    final isAdmin = isWelfareAdmin(user);
+    final canDelete = isOwner || isAdmin;
     final isAccepted = donation.status.toLowerCase() == 'accepted' ||
         donation.status.toLowerCase() == 'approved';
     final isRejected = donation.status.toLowerCase() == 'rejected';
@@ -733,10 +753,17 @@ class DonationCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (isOwner)
+                if (canDelete)
                   IconButton(
-                    tooltip: 'Delete donation',
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    tooltip: isAdmin && !isOwner
+                        ? 'Remove donation (Admin)'
+                        : 'Delete donation',
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: isAdmin && !isOwner
+                          ? const Color(0xFFDC2626)
+                          : Colors.red,
+                    ),
                     onPressed: () => _deleteDonation(context),
                   ),
               ],

@@ -663,6 +663,52 @@ body {
   border-color: var(--primary-green);
 }
 
+.btn-danger {
+  background: var(--danger-red);
+  color: white;
+  border: 1px solid var(--danger-red);
+}
+
+.btn-danger:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.btn-danger-outline {
+  background: #FEF2F2;
+  color: var(--danger-red);
+  border: 1px solid #FCA5A5;
+}
+
+.btn-danger-outline:hover {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border-color: var(--danger-red);
+}
+
+.admin-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-remove-btn:hover {
+  background: #DC2626;
+  color: white;
+  border-color: #DC2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
 .btn-sm {
   padding: 6px 14px;
   font-size: 0.82rem;

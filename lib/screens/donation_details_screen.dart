@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/donation.dart';
 import '../services/notification_service.dart';
+import '../utils/admin_config.dart';
 import '../utils/app_theme.dart';
 import '../widgets/foodlink_ui_components.dart';
 import '../widgets/welfare_quality_checklist_dialog.dart';
@@ -151,6 +152,70 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
     }
   }
 
+  Future<void> _confirmDeleteDonation(
+      BuildContext context, Donation donation) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final isAdmin = isWelfareAdmin(user);
+    final isOwner = donation.donorId == user?.uid ||
+        (user?.email != null && donation.donorEmail == user!.email);
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isAdmin && !isOwner
+            ? 'Remove donation (Admin)?'
+            : 'Delete donation?'),
+        content: Text(
+          isAdmin && !isOwner
+              ? 'As an administrator, are you sure you want to remove "${donation.foodName}" from the list?'
+              : 'Are you sure you want to delete this donation?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              isAdmin && !isOwner ? 'Remove' : 'Delete',
+              style: const TextStyle(
+                color: Color(0xFFDC2626),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('donations')
+          .doc(donation.id)
+          .delete();
+
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isAdmin && !isOwner
+                ? 'Donation removed by admin'
+                : 'Donation deleted'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete donation: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Fallback donation if none passed
@@ -196,6 +261,12 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
       'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600',
     ];
 
+    final user = FirebaseAuth.instance.currentUser;
+    final isOwner = donation.donorId == user?.uid ||
+        (user?.email != null && donation.donorEmail == user!.email);
+    final isAdmin = isWelfareAdmin(user);
+    final canDelete = isOwner || isAdmin;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -219,6 +290,18 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
           ),
         ),
         actions: [
+          if (canDelete)
+            IconButton(
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: Color(0xFFDC2626),
+                size: 22,
+              ),
+              tooltip: isAdmin && !isOwner
+                  ? 'Remove donation (Admin)'
+                  : 'Delete donation',
+              onPressed: () => _confirmDeleteDonation(context, donation),
+            ),
           IconButton(
             icon: const Icon(
               Icons.more_vert,
@@ -256,6 +339,28 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
                           title: const Text('Share Donation'),
                           onTap: () => Navigator.pop(context),
                         ),
+                        if (canDelete) ...[
+                          const Divider(),
+                          ListTile(
+                            leading: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Color(0xFFDC2626),
+                            ),
+                            title: Text(
+                              isAdmin && !isOwner
+                                  ? 'Remove Donation (Admin)'
+                                  : 'Delete Donation',
+                              style: const TextStyle(
+                                color: Color(0xFFDC2626),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _confirmDeleteDonation(context, donation);
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),
