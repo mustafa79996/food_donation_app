@@ -227,8 +227,11 @@ void main() {
     expect((map['welfareChecklist'] as Map)['isFresh'], isTrue);
   });
 
-  test('admin configuration identifies authorized administrator accounts', () {
-    expect(welfareAdminEmail, 'mustafa79996@gmail.com');
-    expect(welfareAdminEmails.contains('mustafa79996@gmail.com'), isTrue);
+  test('admin configuration identifies authorized administrator roles', () {
+    AdminConfig.cacheRole('admin_test_uid', 'admin');
+    AdminConfig.cacheRole('donor_test_uid', 'donor');
+
+    expect(AdminConfig.isWelfareAdmin(null), isFalse);
+    expect(isWelfareAdmin(null), isFalse);
   });
 }

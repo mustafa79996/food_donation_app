@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/donation.dart';
-import '../utils/admin_config.dart';
 
 /// Model representing an in-app notification.
 class AppNotification {
@@ -152,8 +151,8 @@ class NotificationService {
         );
       }
 
-      // 3. Find Welfare Centres to notify (Admin + all registered centres)
-      final welfareEmails = <String>{welfareAdminEmail};
+      // 3. Find Welfare Centres to notify (all registered centres)
+      final welfareEmails = <String>{};
       final welfareCentreIds = <String>[];
 
       try {
@@ -224,7 +223,7 @@ class NotificationService {
               '- Quantity: ${donation.quantity} servings\n'
               '- Category: ${donation.category}\n'
               '- Donor Name: ${donation.donorName}\n'
-              '- Donor Phone: ${donation.contactNumber}\n'
+              '- Donor Phone: (Shared upon accepting donation)\n'
               '- Pickup Address: ${donation.pickupAddress}\n\n'
               'Please open FoodLink and visit the Welfare Dashboard to Accept or Reject this donation request.\n\n'
               'Best regards,\nFoodLink Team',
@@ -237,7 +236,7 @@ class NotificationService {
                 <p style="margin: 4px 0;"><strong>Food:</strong> ${donation.foodName}</p>
                 <p style="margin: 4px 0;"><strong>Quantity:</strong> ${donation.quantity} servings</p>
                 <p style="margin: 4px 0;"><strong>Category:</strong> ${donation.category}</p>
-                <p style="margin: 4px 0;"><strong>Donor:</strong> ${donation.donorName} (${donation.contactNumber})</p>
+                <p style="margin: 4px 0;"><strong>Donor:</strong> ${donation.donorName} <em>(Contact number shared upon accepting)</em></p>
                 <p style="margin: 4px 0;"><strong>Pickup Address:</strong> ${donation.pickupAddress}</p>
               </div>
               <p>Please log in to the <strong>Welfare Dashboard</strong> on the FoodLink app to Accept or Reject this donation.</p>
@@ -327,7 +326,7 @@ class NotificationService {
       }
 
       // 3. In-app Notification for Welfare Centre
-      final centreEmail = updatedByEmail ?? welfareAdminEmail;
+      final centreEmail = updatedByEmail ?? 'welfare@foodlink.org';
       await _firestore.collection('notifications').add({
         'recipientId': 'welfare_centre',
         'recipientEmail': centreEmail,

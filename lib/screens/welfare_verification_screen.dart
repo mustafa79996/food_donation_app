@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../utils/admin_config.dart';
 import '../utils/routes.dart';
 
 class WelfareVerificationScreen extends StatefulWidget {
@@ -27,9 +27,14 @@ class _WelfareVerificationScreenState extends State<WelfareVerificationScreen> {
       final firestore = FirebaseFirestore.instance;
       final batch = firestore.batch();
 
+      final currentAdmin = FirebaseAuth.instance.currentUser;
+      final reviewer = currentAdmin?.displayName?.isNotEmpty == true
+          ? currentAdmin!.displayName!
+          : (currentAdmin?.email ?? 'Administrator');
+
       batch.set(firestore.collection('welfare_centres').doc(centreId), {
         'status': status,
-        'reviewedBy': welfareAdminEmail,
+        'reviewedBy': reviewer,
         'reviewedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 

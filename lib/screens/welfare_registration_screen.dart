@@ -150,7 +150,7 @@ class _WelfareRegistrationScreenState extends State<WelfareRegistrationScreen> {
             );
         uploadedCertificateRef = storagePath;
       } catch (storageError) {
-        debugPrint('Firebase storage error, trying Cloudinary fallback: $storageError');
+        debugPrint('Firebase storage error, trying fallback storage upload: $storageError');
         try {
           uploadedCertificateRef = await StorageHelper.uploadDonationImage(_certificate!);
         } catch (e) {

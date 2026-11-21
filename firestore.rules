@@ -1,28 +1,124 @@
 rules_version = '2';
 service cloud_firestore {
   match /databases/{database}/documents {
-    // Allow read for everyone so donations and centres always load without permission errors
+
+    // Helper functions for authentication and role verification
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDocExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.role == 'admin') ||
+        (userDocExists() && getUserData().role == 'admin')
+      );
+    }
+
+    function isApprovedCentre() {
+      return isSignedIn() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/welfare_centres/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/welfare_centres/$(request.auth.uid)).data.status == 'approved') ||
+        (userDocExists() && getUserData().role == 'welfare' &&
+         exists(/databases/$(database)/documents/welfare_centres/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/welfare_centres/$(request.auth.uid)).data.status == 'approved')
+      );
+    }
+
+    // 1. Users collection (stores role: 'donor', 'welfare', 'admin')
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      // Users can create their own profile during signup; cannot assign themselves 'admin' role
+      allow create: if isSignedIn() && (
+        (request.auth.uid == userId && request.resource.data.role != 'admin') ||
+        isAdmin()
+      );
+      // Users can update their profile, but cannot change their own role to 'admin'
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 2. Donations collection
     match /donations/{donationId} {
+      // Anyone can read available donations
       allow read: if true;
-      allow write: if request.auth != null;
+
+      // Donors can create donations tied to their UID
+      allow create: if isSignedIn() && (
+        request.resource.data.donorId == request.auth.uid ||
+        request.resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // A donor can edit their own donation; an approved welfare centre can accept/reject or add checklist; admin can edit any
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.donorId == request.auth.uid || resource.data.userId == request.auth.uid) ||
+        (isApprovedCentre() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'updatedBy',
+          'updatedAt',
+          'acceptedBy',
+          'acceptedByUid',
+          'acceptedByEmail',
+          'welfareChecklist',
+          'qualityStatus'
+        ]))
+      );
+
+      // Only the donor who posted or an admin can delete a donation
+      allow delete: if isSignedIn() && (
+        resource.data.donorId == request.auth.uid ||
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
     }
 
+    // 3. Welfare Centres applications & private profiles
     match /welfare_centres/{centreId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if isSignedIn();
+      // Centre can register their own application
+      allow create: if isSignedIn() && (request.auth.uid == centreId || isAdmin());
+      // Centre can update their details, but ONLY admin can approve/reject (modify 'status' or 'reviewedBy')
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        request.auth.uid == centreId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'reviewedBy', 'reviewedAt'])
+      );
+      // Only admin can delete a welfare centre record
+      allow delete: if isAdmin();
     }
 
+    // 4. Public Welfare Centres (verified public directory for map & nearby centres)
     match /public_welfare_centres/{centreId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      // Only admin can publish or modify verified public centre listings
+      allow write: if isAdmin();
     }
 
+    // 5. In-App Notifications
     match /notifications/{notificationId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn();
     }
 
+    // 6. Trigger Email collection
     match /mail/{mailId} {
-      allow read, write: if true;
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
   }
 }

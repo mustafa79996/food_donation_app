@@ -15,6 +15,10 @@
       --border-color: #E2E8F0;
       --white: #FFFFFF;
       --amber: #D97706;
+      --amber-bg: #FFFBEB;
+      --amber-border: #FDE68A;
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.04);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body {
@@ -28,10 +32,10 @@
     }
     .card {
       background: var(--white);
-      max-width: 440px;
+      max-width: 460px;
       width: 100%;
       border-radius: 24px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+      box-shadow: var(--shadow-lg);
       border: 1px solid var(--border-color);
       overflow: hidden;
       text-align: center;
@@ -42,29 +46,29 @@
       padding: 36px 20px 28px;
     }
     .app-icon {
-      width: 72px;
-      height: 72px;
+      width: 76px;
+      height: 76px;
       background: var(--white);
-      border-radius: 18px;
+      border-radius: 20px;
       margin: 0 auto 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 2.4rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
     }
-    .app-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
-    .app-sub { font-size: 0.88rem; color: #E2E8F0; }
+    .app-title { font-size: 1.7rem; font-weight: 800; margin-bottom: 4px; }
+    .app-sub { font-size: 0.9rem; color: #E2E8F0; }
     .card-body { padding: 28px 24px; }
     .status-badge {
       display: inline-block;
       background: var(--mint-bg);
       color: var(--primary-green);
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 700;
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 999px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       border: 1px solid #BBF7D0;
     }
     .btn-download {
@@ -74,46 +78,86 @@
       gap: 10px;
       background: var(--primary-green);
       color: var(--white);
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       font-weight: 700;
       text-decoration: none;
-      padding: 16px 24px;
+      padding: 18px 24px;
       border-radius: 999px;
       box-shadow: 0 4px 14px rgba(15, 81, 50, 0.35);
       transition: transform 0.15s ease, background 0.15s ease;
-      margin-bottom: 24px;
+      margin-bottom: 12px;
     }
-    .btn-download:hover {
+    .btn-download:hover, .btn-download:active {
       background: var(--brand-green);
       transform: translateY(-2px);
+    }
+    .meta-info {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 22px;
     }
     .instructions {
       text-align: left;
       background: #F8FAFC;
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 16px;
-      font-size: 0.85rem;
+      padding: 18px;
+      font-size: 0.88rem;
       color: var(--text-dark);
+      margin-bottom: 16px;
     }
     .instructions h4 {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       color: var(--primary-green);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .instructions ol {
-      padding-left: 20px;
+      padding-left: 22px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       color: var(--text-muted);
     }
     .instructions strong {
       color: var(--text-dark);
+    }
+    .troubleshoot {
+      text-align: left;
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      color: #92400E;
+    }
+    .troubleshoot h5 {
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .troubleshoot ul {
+      margin-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #78350F;
+    }
+    .qr-link {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 0.85rem;
+      color: var(--primary-green);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .qr-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -125,35 +169,45 @@
       <p class="app-sub">Food Rescue & Welfare Distribution</p>
     </div>
     <div class="card-body">
-      <span class="status-badge">✓ Android APK Package (v1.0.0)</span>
+      <span class="status-badge">✓ Official Android APK Package (v1.0.0)</span>
       
-      <a href="foodlink.apk" download="foodlink.apk" class="btn-download" id="download-btn">
+      <a href="https://github.com/mustafa79996/food_donation_app/releases/latest/download/foodlink.apk" class="btn-download" id="download-btn">
         <span>📥</span> Download FoodLink APK
       </a>
+      <div class="meta-info">File: <strong>foodlink.apk</strong> (~21.4 MB) • Fast Cloud CDN • Ready to Install</div>
 
       <div class="instructions">
         <h4><span>📲</span> Installation Steps</h4>
         <ol>
-          <li>Tap <strong>Download anyway</strong> if your browser asks.</li>
-          <li>Once finished, tap <strong>Open</strong> from notifications.</li>
-          <li>If prompted, tap <strong>Settings</strong> & enable <strong>Allow from this source</strong>.</li>
-          <li>Tap <strong>Install</strong> to start using FoodLink!</li>
+          <li>If Chrome asks <em>"File might be harmful"</em>, tap <strong>Download anyway</strong>.</li>
+          <li>Once finished, tap <strong>Open</strong> directly from the notification.</li>
+          <li>If prompted by Android, tap <strong>Settings</strong> & enable <strong>Allow from this source</strong>.</li>
+          <li>Tap <strong>Install</strong> to launch FoodLink!</li>
         </ol>
       </div>
+
+      <div class="troubleshoot">
+        <h5><span>💡</span> Trouble opening the file?</h5>
+        <ul>
+          <li>If tapping "Open" says <em>"Can't open file"</em>, open your phone's <strong>Files</strong> or <strong>Downloads</strong> app and tap <strong>foodlink.apk</strong> directly.</li>
+          <li>Make sure you stay connected to the same Wi-Fi network during download.</li>
+        </ul>
+      </div>
+
+      <a href="qr" class="qr-link">📱 View / Share All QR Codes & Printable Flyers</a>
     </div>
   </div>
 
   <script>
-    // Trigger download automatically
+    // Trigger download navigation safely
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = 'foodlink.apk';
-        link.download = 'foodlink.apk';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, 600);
+        try {
+          window.location.href = 'https://github.com/mustafa79996/food_donation_app/releases/latest/download/foodlink.apk';
+        } catch (e) {
+          console.warn('Auto download navigation blocked by browser policy:', e);
+        }
+      }, 700);
     });
   </script>
 </body>

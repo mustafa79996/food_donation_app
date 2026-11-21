@@ -185,6 +185,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
           const SizedBox(height: 24),
 
+          _buildSectionHeader('Help & Support'),
+          const SizedBox(height: 10),
+          _buildGroupContainer([
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEDE9FE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.support_agent_rounded,
+                  color: Color(0xFF5B4DDF),
+                  size: 22,
+                ),
+              ),
+              title: const Text(
+                'Live Support Assistant (Mia)',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              subtitle: const Text(
+                'Chat with Mia for instant answers & help',
+                style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFF94A3B8),
+              ),
+              onTap: () => Navigator.pushNamed(context, Routes.supportChat),
+            ),
+          ]),
+          const SizedBox(height: 24),
+
           _buildSectionHeader('About'),
           const SizedBox(height: 10),
           _buildGroupContainer([

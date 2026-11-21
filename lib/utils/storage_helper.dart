@@ -1,9 +1,15 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 
+/// Secure storage helper.
+///
+/// Images are uploaded directly to Firebase Storage using authenticated Firebase credentials
+/// and evaluated against storage security rules (storage.rules).
+/// No third-party API keys, secrets, or upload presets are bundled in the client APK.
 class StorageHelper {
+  /// Uploads an image file to Firebase Storage under the /donations path.
   static Future<String> uploadDonationImage(File imageFile) async {
     if (!await imageFile.exists()) {
       throw Exception(
@@ -11,34 +17,24 @@ class StorageHelper {
       );
     }
 
-    const cloudName = 'ptdl8yij';
-    const uploadPreset = 'flutter_upload';
+    try {
+      final fileName =
+          'donation_${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split(Platform.pathSeparator).last}';
+      final storageRef =
+          FirebaseStorage.instance.ref().child('donations').child(fileName);
 
-    final url = Uri.parse(
-      'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
-    );
+      final uploadTask = await storageRef.putFile(
+        imageFile,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
 
-    final request = http.MultipartRequest('POST', url);
-
-    request.fields['upload_preset'] = uploadPreset;
-
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'file',
-        imageFile.path,
-      ),
-    );
-
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(responseBody);
-      return data['secure_url'];
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('Firebase Storage upload failed: $e');
+      throw Exception(
+        'Failed to securely upload image: ${e.toString()}',
+      );
     }
-
-    throw Exception(
-      'Cloudinary upload failed: $responseBody',
-    );
   }
 }

@@ -77,6 +77,8 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             .update({
           'status': newStatus,
           'updatedBy': updatedBy,
+          'acceptedBy': newStatus == 'accepted' ? (user?.uid ?? '') : '',
+          'acceptedByEmail': newStatus == 'accepted' ? (user?.email ?? '') : '',
           'updatedAt': FieldValue.serverTimestamp(),
         });
 
@@ -262,9 +264,18 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
     ];
 
     final user = FirebaseAuth.instance.currentUser;
+    final currentUserName = user?.displayName?.isNotEmpty == true
+        ? user!.displayName!
+        : (user?.email?.isNotEmpty == true ? user!.email! : '');
     final isOwner = donation.donorId == user?.uid ||
         (user?.email != null && donation.donorEmail == user!.email);
     final isAdmin = isWelfareAdmin(user);
+    final isAcceptedByThisCentre = isAccepted && (
+      (user != null && donation.acceptedBy.isNotEmpty && donation.acceptedBy == user.uid) ||
+      (user?.email != null && donation.acceptedByEmail.isNotEmpty && donation.acceptedByEmail == user!.email) ||
+      (donation.updatedBy.isNotEmpty && currentUserName.isNotEmpty && donation.updatedBy == currentUserName)
+    );
+    final canViewContact = isOwner || isAdmin || isAcceptedByThisCentre;
     final canDelete = isOwner || isAdmin;
 
     return Scaffold(
@@ -320,17 +331,18 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ListTile(
-                          leading: const Icon(
-                            Icons.phone_outlined,
-                            color: Color(0xFF15803D),
+                        if (canViewContact)
+                          ListTile(
+                            leading: const Icon(
+                              Icons.phone_outlined,
+                              color: Color(0xFF15803D),
+                            ),
+                            title: const Text('Call Donor'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _callDonor(donation.contactNumber);
+                            },
                           ),
-                          title: const Text('Call Donor'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _callDonor(donation.contactNumber);
-                          },
-                        ),
                         ListTile(
                           leading: const Icon(
                             Icons.share_outlined,
@@ -467,9 +479,13 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             _buildInfoRow(
               icon: Icons.phone_outlined,
               label: 'Contact number',
-              value: donation.contactNumber,
-              isPhone: true,
-              onTap: () => _callDonor(donation.contactNumber),
+              value: canViewContact
+                  ? donation.contactNumber
+                  : '•••••••••• (Visible upon acceptance)',
+              isPhone: canViewContact,
+              onTap: canViewContact
+                  ? () => _callDonor(donation.contactNumber)
+                  : null,
             ),
             _buildInfoRow(
               icon: Icons.badge_outlined,
@@ -839,16 +855,18 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    IconButton.filled(
-                      onPressed: () => _callDonor(donation.contactNumber),
-                      icon: const Icon(Icons.phone, color: Colors.white),
-                      style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F5132),
-                        padding: const EdgeInsets.all(13),
+                    if (canViewContact) ...[
+                      const SizedBox(width: 10),
+                      IconButton.filled(
+                        onPressed: () => _callDonor(donation.contactNumber),
+                        icon: const Icon(Icons.phone, color: Colors.white),
+                        style: IconButton.styleFrom(
+                          backgroundColor: const Color(0xFF0F5132),
+                          padding: const EdgeInsets.all(13),
+                        ),
+                        tooltip: 'Call Donor',
                       ),
-                      tooltip: 'Call Donor',
-                    ),
+                    ],
                   ],
                 )
               : isRejected

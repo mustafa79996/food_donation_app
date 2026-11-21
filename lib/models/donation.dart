@@ -16,6 +16,8 @@ class Donation {
   final DateTime createdAt;
   final String status;
   final String updatedBy;
+  final String acceptedBy;
+  final String acceptedByEmail;
   final Map<String, bool> foodSafetyChecklist;
   final Map<String, dynamic>? welfareChecklist;
 
@@ -34,6 +36,8 @@ class Donation {
     required this.createdAt,
     this.status = 'pending',
     this.updatedBy = '',
+    this.acceptedBy = '',
+    this.acceptedByEmail = '',
     this.foodSafetyChecklist = const {},
     this.welfareChecklist,
   });
@@ -61,6 +65,8 @@ class Donation {
       createdAt: _dateFromValue(data['createdAt']) ?? DateTime.now(),
       status: (data['status']?.toString() ?? 'pending').toLowerCase(),
       updatedBy: data['updatedBy']?.toString() ?? '',
+      acceptedBy: (data['acceptedBy'] ?? data['acceptedByUid'] ?? '')?.toString() ?? '',
+      acceptedByEmail: data['acceptedByEmail']?.toString() ?? '',
       foodSafetyChecklist: _parseSafetyChecklist(data['foodSafetyChecklist']),
       welfareChecklist: _parseWelfareChecklist(data['welfareChecklist']),
     );
@@ -122,6 +128,8 @@ class Donation {
       'createdAt': Timestamp.fromDate(createdAt),
       'status': status,
       'updatedBy': updatedBy,
+      'acceptedBy': acceptedBy,
+      'acceptedByEmail': acceptedByEmail,
       'foodSafetyChecklist': foodSafetyChecklist,
       if (welfareChecklist != null) 'welfareChecklist': welfareChecklist,
     };
@@ -142,6 +150,8 @@ class Donation {
     DateTime? createdAt,
     String? status,
     String? updatedBy,
+    String? acceptedBy,
+    String? acceptedByEmail,
     Map<String, bool>? foodSafetyChecklist,
     Map<String, dynamic>? welfareChecklist,
   }) {
@@ -160,6 +170,8 @@ class Donation {
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
       updatedBy: updatedBy ?? this.updatedBy,
+      acceptedBy: acceptedBy ?? this.acceptedBy,
+      acceptedByEmail: acceptedByEmail ?? this.acceptedByEmail,
       foodSafetyChecklist: foodSafetyChecklist ?? this.foodSafetyChecklist,
       welfareChecklist: welfareChecklist ?? this.welfareChecklist,
     );

@@ -278,9 +278,9 @@ class ProfileScreen extends StatelessWidget {
                           icon: Icons.headset_mic_rounded,
                           iconBgColor: const Color(0xFFEDE9FE),
                           iconColor: const Color(0xFF5B4DDF),
-                          title: 'Support assistant',
+                          title: 'Support assistant (Mia)',
                           subtitle:
-                              'Chat with our virtual assistant for help and guidance',
+                              'Chat live with Mia, our support assistant',
                           onTap: () =>
                               Navigator.pushNamed(context, Routes.supportChat),
                         ),

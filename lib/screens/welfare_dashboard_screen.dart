@@ -835,6 +835,18 @@ class _WelfareDashboardScreenState extends State<WelfareDashboardScreen> {
     required String currentStatus,
     required bool isAdmin,
   }) {
+    final user = FirebaseAuth.instance.currentUser;
+    final isOwner = donation.donorId == user?.uid ||
+        (user?.email != null && donation.donorEmail == user!.email);
+    final isAccepted = currentStatus.toLowerCase() == 'accepted' ||
+        currentStatus.toLowerCase() == 'approved';
+    final isAcceptedByThisCentre = isAccepted && (
+      (user != null && donation.acceptedBy.isNotEmpty && donation.acceptedBy == user.uid) ||
+      (user?.email != null && donation.acceptedByEmail.isNotEmpty && donation.acceptedByEmail == user!.email) ||
+      (donation.updatedBy.isNotEmpty && donation.updatedBy == (user?.displayName ?? user?.email ?? ''))
+    );
+    final canViewContact = isOwner || isAdmin || isAcceptedByThisCentre;
+
     return InkWell(
       onTap: () {
         Navigator.pushNamed(context, Routes.details, arguments: donation);
@@ -998,10 +1010,17 @@ class _WelfareDashboardScreenState extends State<WelfareDashboardScreen> {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            'Contact: ${donation.contactNumber}',
-                            style: const TextStyle(
+                            canViewContact
+                                ? 'Contact: ${donation.contactNumber}'
+                                : 'Contact: Hidden until accepted',
+                            style: TextStyle(
                               fontSize: 12.5,
-                              color: Color(0xFF64748B),
+                              color: canViewContact
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF94A3B8),
+                              fontStyle: canViewContact
+                                  ? FontStyle.normal
+                                  : FontStyle.italic,
                             ),
                           ),
                         ],

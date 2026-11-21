@@ -22,14 +22,10 @@ class _WelfareLoginScreenState extends State<WelfareLoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Default to admin email for easy testing
     final current = FirebaseAuth.instance.currentUser;
     if (current != null && current.email != null) {
       emailController.text = current.email!;
-    } else {
-      emailController.text = welfareAdminEmail;
     }
-    passwordController.text = '123456';
   }
 
   void _fillPreset(String email, String password) {
@@ -81,9 +77,9 @@ class _WelfareLoginScreenState extends State<WelfareLoginScreen> {
         }
       }
 
-      // 2. Check if Admin (mustafa79996@gmail.com)
-      final isAdmin = email.toLowerCase() == welfareAdminEmail.toLowerCase() ||
-          (user != null && isWelfareAdmin(user));
+      // 2. Check if Admin via database role in Firestore
+      final isAdmin = user != null &&
+          (await checkIsAdmin(user) || isWelfareAdmin(user));
 
       if (isAdmin) {
         if (!mounted) return;
@@ -328,7 +324,7 @@ class _WelfareLoginScreenState extends State<WelfareLoginScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () =>
-                          _fillPreset(welfareAdminEmail, '123456'),
+                          _fillPreset('admin@foodlink.org', '123456'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         side: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -340,7 +336,7 @@ class _WelfareLoginScreenState extends State<WelfareLoginScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: const [
                           Text(
-                            'Admin Account',
+                            'Admin Portal',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -348,7 +344,7 @@ class _WelfareLoginScreenState extends State<WelfareLoginScreen> {
                             ),
                           ),
                           Text(
-                            'mustafa79996@...',
+                            'Verified Admin Role',
                             style: TextStyle(
                               fontSize: 10.5,
                               color: Color(0xFF64748B),
